@@ -236,16 +236,11 @@ npm run build
 - Add new API endpoints in backend `handlers/` and `services/`.
 - Add new React components in `ui/src/components/`.
 - Update types in `ui/src/types/`.
-
-### Testing
-
-- (Add instructions here if you add tests.)
-
 ---
 
 ## License
 
-MIT (or specify your license here)
+MIT. See [LICENSE](LICENSE) for more information.
 
 ---
 
