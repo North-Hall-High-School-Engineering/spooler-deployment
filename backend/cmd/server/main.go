@@ -1,3 +1,11 @@
+// @title Spooler API
+// @version 1.0
+// @description API for 3D print job management and authentication
+// @contact.name North Hall TSA
+// @contact.email northhalltsa@gmail.com
+// @host localhost:8080
+// @BasePath /
+// @schemes http
 package main
 
 import (

@@ -1,0 +1,40 @@
+name: Generate Swagger Docs
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  generate-swagger:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.24.5'
+
+      - name: Install swag CLI
+        run: |
+          go install github.com/swaggo/swag/cmd/swag@latest
+          export PATH=$PATH:$(go env GOPATH)/bin
+
+      - name: Generate swagger docs
+        run: swag init -g ./cmd/server/main.go
+
+      - name: Commit and push docs if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/
+          if ! git diff --cached --quiet; then
+            git commit -m "ci: auto generate swagger docs"
+            git push
+          else
+            echo "No changes to commit"
+          fi

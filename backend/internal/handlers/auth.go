@@ -15,6 +15,16 @@ type RegisterRequest struct {
 	LastName  string `json:"last_name" binding:"required"`
 }
 
+// RegisterHandler godoc
+// @Summary Register a new user account
+// @Description Creates a new user account
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param registerRequest body handlers.RegisterRequest true "User registration payload"
+// @Success 201 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Router /register [post]
 func RegisterHandler(userSvc *services.UserService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req RegisterRequest
@@ -43,14 +53,23 @@ func RegisterHandler(userSvc *services.UserService) gin.HandlerFunc {
 	}
 }
 
+// MeHandler godoc
+// @Summary Get authenticated user info
+// @Description Returns current user's info from JWT claims
+// @Tags user
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 401 {object} map[string]string
+// @Security Authenticated
+// @Router /me [get]
 func MeHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user, exists := c.Get("user")
 		if !exists {
-			c.JSON(401, gin.H{"error": "unauthorized"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 			return
 		}
 
-		c.JSON(200, gin.H{"message": "authenticated", "user": user})
+		c.JSON(http.StatusOK, gin.H{"message": "authenticated", "user": user})
 	}
 }

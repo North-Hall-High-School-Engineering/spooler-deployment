@@ -19,6 +19,20 @@ type NewPrintRequest struct {
 	FilamentColor string `form:"requested_filament_color" binding:"required"`
 }
 
+// NewPrintHandler godoc
+// @Summary Upload a new print job STL file
+// @Description Upload STL with requested filament color and create a print job
+// @Tags prints
+// @Accept multipart/form-data
+// @Produce json
+// @Param requested_filament_color formData string true "Filament color"
+// @Param file formData file true "STL file to upload"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Security Authenticated
+// @Router /prints/new [post]
 func NewPrintHandler(bucketSvc *services.BucketService, printSvc *services.PrintService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user, exists := c.Get("user")
@@ -81,6 +95,18 @@ func NewPrintHandler(bucketSvc *services.BucketService, printSvc *services.Print
 	}
 }
 
+// MetadataHandler godoc
+// @Summary Get metadata for an STL file
+// @Description Upload STL file and get its metadata (dimensions, volume, etc)
+// @Tags prints
+// @Accept multipart/form-data
+// @Produce json
+// @Param file formData file true "STL file"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Security Authenticated
+// @Router /metadata [post]
 func MetadataHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		file, err := c.FormFile("file")
@@ -108,6 +134,15 @@ func MetadataHandler() gin.HandlerFunc {
 	}
 }
 
+// GetUserPrintsHandler godoc
+// @Summary List prints of the authenticated user
+// @Description Get all print jobs for the logged-in user
+// @Tags prints
+// @Produce json
+// @Success 200 {array} models.Print
+// @Failure 401 {object} map[string]string
+// @Security Authenticated
+// @Router /me/prints [get]
 func GetUserPrintsHandler(printSvc *services.PrintService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user, exists := c.Get("user")
@@ -133,6 +168,16 @@ func GetUserPrintsHandler(printSvc *services.PrintService) gin.HandlerFunc {
 
 }
 
+// AllPrintsHandler godoc
+// @Summary Get all print jobs (admin only)
+// @Description List all print jobs in the system
+// @Tags prints
+// @Produce json
+// @Success 200 {array} models.Print
+// @Failure 500 {object} map[string]string
+// @Security Authenticated
+// @Security RoleAdmin
+// @Router /prints/all [get]
 func AllPrintsHandler(printSvc *services.PrintService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		prints, err := printSvc.AllPrints()
@@ -145,6 +190,18 @@ func AllPrintsHandler(printSvc *services.PrintService) gin.HandlerFunc {
 	}
 }
 
+// ApprovePrintHandler godoc
+// @Summary Approve a print job (admin only)
+// @Description Approves print job by ID
+// @Tags prints
+// @Param id path int true "Print ID"
+// @Produce json
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Security Authenticated
+// @Security RoleAdmin
+// @Router /prints/{id}/approve [post]
 func ApprovePrintHandler(printSvc *services.PrintService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idParam := c.Param("id")
@@ -167,6 +224,20 @@ type DenyPrintRequest struct {
 	Reason string `json:"reason" binding:"required"`
 }
 
+// DenyPrintHandler godoc
+// @Summary Deny a print job (admin only)
+// @Description Denies print job by ID with a reason
+// @Tags prints
+// @Param id path int true "Print ID"
+// @Accept json
+// @Produce json
+// @Param denyPrintRequest body handlers.DenyPrintRequest true "Denial reason"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Security Authenticated
+// @Security RoleAdmin
+// @Router /prints/{id}/deny [post]
 func DenyPrintHandler(printSvc *services.PrintService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idParam := c.Param("id")
@@ -191,6 +262,19 @@ func DenyPrintHandler(printSvc *services.PrintService) gin.HandlerFunc {
 	}
 }
 
+// DeletePrintHandler godoc
+// @Summary Delete a print job and file (admin only)
+// @Description Deletes print job by ID and its stored STL file
+// @Tags prints
+// @Param id path int true "Print ID"
+// @Produce json
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Security Authenticated
+// @Security RoleAdmin
+// @Router /prints/{id} [delete]
 func DeletePrintHandler(printSvc *services.PrintService, bucketSvc *services.BucketService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idParam := c.Param("id")
@@ -220,6 +304,16 @@ func DeletePrintHandler(printSvc *services.PrintService, bucketSvc *services.Buc
 	}
 }
 
+// DownloadPrintFileHandler godoc
+// @Summary Download STL file from bucket
+// @Description Download STL file by filename
+// @Tags prints
+// @Param filename path string true "Stored filename"
+// @Produce application/octet-stream
+// @Success 200 "File streamed"
+// @Failure 404 {object} map[string]string
+// @Security Authenticated
+// @Router /bucket/{filename} [get]
 func DownloadPrintFileHandler(bucketSvc *services.BucketService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		filename := c.Param("filename")
@@ -254,6 +348,20 @@ func isValidPrintStatus(status string) bool {
 	}
 }
 
+// UpdatePrintStatusHandler godoc
+// @Summary Update the status of a print job (admin only)
+// @Description Update print job status by ID (e.g. printing, completed, denied)
+// @Tags prints
+// @Param id path int true "Print ID"
+// @Accept json
+// @Produce json
+// @Param updatePrintStatusRequest body handlers.UpdatePrintStatusRequest true "New status"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Security Authenticated
+// @Security RoleAdmin
+// @Router /prints/{id}/status [put]
 func UpdatePrintStatusHandler(printSvc *services.PrintService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idParam := c.Param("id")
