@@ -25,7 +25,7 @@ jobs:
           export PATH=$PATH:$(go env GOPATH)/bin
 
       - name: Generate swagger docs
-        run: swag init -g ./cmd/server/main.go
+        run: swag init -g ./backend/cmd/server/main.go
 
       - name: Commit and push docs if changed
         run: |
