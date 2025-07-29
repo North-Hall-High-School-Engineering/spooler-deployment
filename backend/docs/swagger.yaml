@@ -555,4 +555,13 @@ paths:
       - auth
 schemes:
 - http
+securityDefinitions:
+  Authenticated:
+    in: cookie
+    name: token
+    type: apiKey
+  RoleAdmin:
+    in: cookie
+    name: token
+    type: apiKey
 swagger: "2.0"

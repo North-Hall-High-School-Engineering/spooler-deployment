@@ -864,6 +864,18 @@ const docTemplate = `{
                 "StatusPaused"
             ]
         }
+    },
+    "securityDefinitions": {
+        "Authenticated": {
+            "type": "apiKey",
+            "name": "token",
+            "in": "cookie"
+        },
+        "RoleAdmin": {
+            "type": "apiKey",
+            "name": "token",
+            "in": "cookie"
+        }
     }
 }`
 
