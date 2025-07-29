@@ -1,0 +1,558 @@
+basePath: /
+definitions:
+  handlers.DenyPrintRequest:
+    properties:
+      reason:
+        type: string
+    required:
+    - reason
+    type: object
+  handlers.RegisterRequest:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+    required:
+    - email
+    - first_name
+    - last_name
+    type: object
+  handlers.RequestOTPRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  handlers.UpdatePrintStatusRequest:
+    properties:
+      status:
+        type: string
+    required:
+    - status
+    type: object
+  handlers.VerifyOTPRequest:
+    properties:
+      code:
+        type: string
+      email:
+        type: string
+    required:
+    - code
+    - email
+    type: object
+  models.Print:
+    properties:
+      createdAt:
+        type: string
+      denialReason:
+        type: string
+      id:
+        type: integer
+      progress:
+        type: integer
+      requestedFilamentColor:
+        type: string
+      status:
+        $ref: '#/definitions/models.PrintStatus'
+      storedFileName:
+        type: string
+      updatedAt:
+        type: string
+      uploadedFileName:
+        type: string
+      userID:
+        type: integer
+    type: object
+  models.PrintStatus:
+    enum:
+    - approval_pending
+    - pending_print
+    - printing
+    - denied
+    - completed
+    - failed
+    - canceled
+    - paused
+    type: string
+    x-enum-varnames:
+    - StatusApprovalPending
+    - StatusPendingPrint
+    - StatusPrinting
+    - StatusDenied
+    - StatusCompleted
+    - StatusFailed
+    - StatusCanceled
+    - StatusPaused
+host: localhost:8080
+info:
+  contact:
+    email: northhalltsa@gmail.com
+    name: North Hall TSA
+  description: API for 3D print job management and authentication
+  title: Spooler API
+  version: "1.0"
+paths:
+  /bucket/{filename}:
+    get:
+      description: Download STL file by filename
+      parameters:
+      - description: Stored filename
+        in: path
+        name: filename
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: File streamed
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Authenticated: []
+      summary: Download STL file from bucket
+      tags:
+      - prints
+  /me:
+    get:
+      description: Returns current user's info from JWT claims
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Authenticated: []
+      summary: Get authenticated user info
+      tags:
+      - user
+  /me/prints:
+    get:
+      description: Get all print jobs for the logged-in user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Print'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Authenticated: []
+      summary: List prints of the authenticated user
+      tags:
+      - prints
+  /metadata:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload STL file and get its metadata (dimensions, volume, etc)
+      parameters:
+      - description: STL file
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Authenticated: []
+      summary: Get metadata for an STL file
+      tags:
+      - prints
+  /otp/request:
+    post:
+      consumes:
+      - application/json
+      description: Generate OTP and send to email
+      parameters:
+      - description: Email address
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.RequestOTPRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Request a one-time passcode (OTP)
+      tags:
+      - auth
+  /otp/verify:
+    post:
+      consumes:
+      - application/json
+      description: Validate OTP and return JWT token with secure cookie
+      parameters:
+      - description: Email and OTP code
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.VerifyOTPRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Verify OTP and login
+      tags:
+      - auth
+  /prints/{id}:
+    delete:
+      description: Deletes print job by ID and its stored STL file
+      parameters:
+      - description: Print ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Authenticated: []
+      - RoleAdmin: []
+      summary: Delete a print job and file (admin only)
+      tags:
+      - prints
+  /prints/{id}/approve:
+    post:
+      description: Approves print job by ID
+      parameters:
+      - description: Print ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Authenticated: []
+      - RoleAdmin: []
+      summary: Approve a print job (admin only)
+      tags:
+      - prints
+  /prints/{id}/deny:
+    post:
+      consumes:
+      - application/json
+      description: Denies print job by ID with a reason
+      parameters:
+      - description: Print ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Denial reason
+        in: body
+        name: denyPrintRequest
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.DenyPrintRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Authenticated: []
+      - RoleAdmin: []
+      summary: Deny a print job (admin only)
+      tags:
+      - prints
+  /prints/{id}/status:
+    put:
+      consumes:
+      - application/json
+      description: Update print job status by ID (e.g. printing, completed, denied)
+      parameters:
+      - description: Print ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: New status
+        in: body
+        name: updatePrintStatusRequest
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdatePrintStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Authenticated: []
+      - RoleAdmin: []
+      summary: Update the status of a print job (admin only)
+      tags:
+      - prints
+  /prints/all:
+    get:
+      description: List all print jobs in the system
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Print'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Authenticated: []
+      - RoleAdmin: []
+      summary: Get all print jobs (admin only)
+      tags:
+      - prints
+  /prints/new:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload STL with requested filament color and create a print job
+      parameters:
+      - description: Filament color
+        in: formData
+        name: requested_filament_color
+        required: true
+        type: string
+      - description: STL file to upload
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - Authenticated: []
+      summary: Upload a new print job STL file
+      tags:
+      - prints
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user account
+      parameters:
+      - description: User registration payload
+        in: body
+        name: registerRequest
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register a new user account
+      tags:
+      - auth
+schemes:
+- http
+swagger: "2.0"
