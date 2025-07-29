@@ -25,12 +25,14 @@ jobs:
       - name: Install swag CLI
         run: |
           go install github.com/swaggo/swag/cmd/swag@latest
-          export PATH=$PATH:$(go env GOPATH)/bin
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
 
       - name: Generate swagger docs
-        run: swag init -g ./backend/cmd/server/main.go
+        working-directory: ./backend
+        run: swag init -g ./cmd/server/main.go
 
       - name: Commit and push docs if changed
+        working-directory: ./backend
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -43,4 +45,3 @@ jobs:
           else
             echo "No changes to commit"
           fi
-
