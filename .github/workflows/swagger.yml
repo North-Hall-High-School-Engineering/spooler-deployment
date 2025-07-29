@@ -45,3 +45,9 @@ jobs:
           else
             echo "No changes to commit"
           fi
+
+      - name: Generate TypeScript types from OpenAPI
+        run: |
+          npm install -g openapi-typescript
+          openapi-typescript backend/docs/swagger.json --output frontend/src/types/api.d.ts
+
