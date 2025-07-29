@@ -1,4 +1,4 @@
-# spooler
+![logo](./assets/logo-1.svg)
 
 A full-stack web application for managing 3D print jobs, featuring user authentication, print submission, administrative review, and file storage.
 
