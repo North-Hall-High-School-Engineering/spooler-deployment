@@ -5,7 +5,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/torbenconto/spooler/config"
-	"github.com/torbenconto/spooler/models"
+	"github.com/torbenconto/spooler/internal/models"
 )
 
 type CustomClaims struct {

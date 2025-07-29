@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/torbenconto/spooler/models"
-	"github.com/torbenconto/spooler/services"
-	"github.com/torbenconto/spooler/util"
+	"github.com/torbenconto/spooler/internal/models"
+	"github.com/torbenconto/spooler/internal/services"
+	"github.com/torbenconto/spooler/internal/util"
 )
 
 type RegisterRequest struct {

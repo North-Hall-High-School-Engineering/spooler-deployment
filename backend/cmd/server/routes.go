@@ -7,10 +7,10 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/torbenconto/spooler/handlers"
-	"github.com/torbenconto/spooler/middleware"
-	"github.com/torbenconto/spooler/models"
-	"github.com/torbenconto/spooler/services"
+	"github.com/torbenconto/spooler/internal/handlers"
+	"github.com/torbenconto/spooler/internal/middleware"
+	"github.com/torbenconto/spooler/internal/models"
+	"github.com/torbenconto/spooler/internal/services"
 	"gorm.io/gorm"
 )
 

@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/torbenconto/spooler/config"
-	"github.com/torbenconto/spooler/models"
+	"github.com/torbenconto/spooler/internal/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

@@ -6,7 +6,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/torbenconto/spooler/models"
+	"github.com/torbenconto/spooler/internal/models"
 	"gorm.io/gorm"
 )
 
