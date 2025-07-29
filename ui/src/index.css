@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+@theme {
+  --color-spooler-orange: #FC6D09;
+  --color-spooler-orange-light: #FF8B3A;
+}
+
