@@ -16,17 +16,6 @@ type RequestOTPRequest struct {
 	Email string `json:"email" binding:"required,email"`
 }
 
-// RequestOTPHandler godoc
-// @Summary Request a one-time passcode (OTP)
-// @Description Generate OTP and send to email
-// @Tags auth
-// @Accept json
-// @Produce json
-// @Param request body handlers.RequestOTPRequest true "Email address"
-// @Success 200 {object} map[string]string
-// @Failure 400 {object} map[string]string
-// @Failure 500 {object} map[string]string
-// @Router /otp/request [post]
 func RequestOTPHandler(otpSvc *services.OTPService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req RequestOTPRequest
@@ -66,19 +55,6 @@ type VerifyOTPRequest struct {
 	Code  string `json:"code" binding:"required,len=6"`
 }
 
-// VerifyOTPHandler godoc
-// @Summary Verify OTP and login
-// @Description Validate OTP and return JWT token with secure cookie
-// @Tags auth
-// @Accept json
-// @Produce json
-// @Param request body handlers.VerifyOTPRequest true "Email and OTP code"
-// @Success 200 {object} map[string]string
-// @Failure 400 {object} map[string]string
-// @Failure 401 {object} map[string]string
-// @Failure 404 {object} map[string]string
-// @Failure 500 {object} map[string]string
-// @Router /otp/verify [post]
 func VerifyOTPHandler(otpSvc *services.OTPService, userSvc *services.UserService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req VerifyOTPRequest
