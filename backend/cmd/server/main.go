@@ -6,6 +6,14 @@
 // @host localhost:8080
 // @BasePath /
 // @schemes http
+
+// @securityDefinitions.apikey Authenticated
+// @in cookie
+// @name token
+
+// @securityDefinitions.apikey RoleAdmin
+// @in cookie
+// @name token
 package main
 
 import (
