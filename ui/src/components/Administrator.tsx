@@ -4,6 +4,7 @@ import { Navbar } from "./Navbar";
 import { useNavigate } from "react-router-dom";
 import type { Print, PrintStatus } from "../types/print";
 import { getAllPrints, updatePrintStatus, deletePrint } from "../util/prints";
+import WhitelistManager from "./WhitelistManager";
 
 const PRINT_STATUS_OPTIONS: { label: string; value: PrintStatus }[] = [
     { label: "Approval Pending", value: "approval_pending" },
@@ -203,7 +204,7 @@ function Administrator() {
                                                 p.Status === "denied" ||
                                                 (opt.value === "denied" && p.Status !== "approval_pending") ||
                                                 (p.Status === "completed" && opt.value === "denied") ||
-                                                (p.Status === "denied" && opt.value === "completed")
+                                                (opt.value === "completed")
                                         )
                                 }
                             >
@@ -417,6 +418,7 @@ function Administrator() {
                         </div>
                     </div>
                 )}
+                <WhitelistManager />
             </main>
         </div>
     );

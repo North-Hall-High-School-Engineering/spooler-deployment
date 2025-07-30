@@ -35,7 +35,7 @@ func NewPrintHandler(bucketSvc *services.BucketService, printSvc *services.Print
 
 		var req NewPrintRequest
 		if err := c.ShouldBind(&req); err != nil {
-			c.JSON(400, gin.H{"error": err.Error()})
+			c.JSON(400, gin.H{"error": "invalid request body"})
 			return
 		}
 
@@ -178,7 +178,7 @@ func DenyPrintHandler(printSvc *services.PrintService) gin.HandlerFunc {
 
 		var req DenyPrintRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(400, gin.H{"error": err.Error()})
+			c.JSON(400, gin.H{"error": "invalid request body"})
 			return
 		}
 
@@ -264,7 +264,7 @@ func UpdatePrintStatusHandler(printSvc *services.PrintService) gin.HandlerFunc {
 		}
 		var req UpdatePrintStatusRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(400, gin.H{"error": err.Error()})
+			c.JSON(400, gin.H{"error": "invalid request body"})
 			return
 		}
 		if !isValidPrintStatus(req.Status) {

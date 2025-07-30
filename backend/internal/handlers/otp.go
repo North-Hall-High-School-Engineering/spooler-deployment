@@ -16,12 +16,24 @@ type RequestOTPRequest struct {
 	Email string `json:"email" binding:"required,email"`
 }
 
-func RequestOTPHandler(otpSvc *services.OTPService) gin.HandlerFunc {
+func RequestOTPHandler(otpSvc *services.OTPService, whitelistSvc *services.WhitelistService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req RequestOTPRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
 			return
+		}
+
+		if config.Cfg.EmailWhitelistEnabled {
+			allowed, err := whitelistSvc.IsWhitelisted(req.Email)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "whitelist check failed"})
+				return
+			}
+			if !allowed {
+				c.JSON(http.StatusForbidden, gin.H{"error": "email not allowed"})
+				return
+			}
 		}
 
 		code, err := otpSvc.GenerateCode(req.Email)
@@ -59,7 +71,7 @@ func VerifyOTPHandler(otpSvc *services.OTPService, userSvc *services.UserService
 	return func(c *gin.Context) {
 		var req VerifyOTPRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
 			return
 		}
 

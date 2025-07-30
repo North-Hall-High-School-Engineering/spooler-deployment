@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/torbenconto/spooler/config"
 	"github.com/torbenconto/spooler/internal/models"
 	"github.com/torbenconto/spooler/internal/services"
 	"github.com/torbenconto/spooler/internal/util"
@@ -15,17 +16,30 @@ type RegisterRequest struct {
 	LastName  string `json:"last_name" binding:"required"`
 }
 
-func RegisterHandler(userSvc *services.UserService) gin.HandlerFunc {
+func RegisterHandler(userSvc *services.UserService, whitelistSvc *services.WhitelistService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req RegisterRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
 			return
 		}
 
 		// Validate email
 		if !util.ValidateEmail(req.Email) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid email format"})
+			return
+		}
+
+		if config.Cfg.EmailWhitelistEnabled {
+			allowed, err := whitelistSvc.IsWhitelisted(req.Email)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "whitelist check failed"})
+				return
+			}
+			if !allowed {
+				c.JSON(http.StatusForbidden, gin.H{"error": "email not allowed"})
+				return
+			}
 		}
 
 		user := models.User{
@@ -35,7 +49,7 @@ func RegisterHandler(userSvc *services.UserService) gin.HandlerFunc {
 		}
 
 		if err := userSvc.CreateUser(&user); err != nil {
-			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+			c.JSON(http.StatusConflict, gin.H{"error": "user already exists"})
 			return
 		}
 

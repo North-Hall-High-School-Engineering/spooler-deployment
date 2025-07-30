@@ -16,6 +16,7 @@ A full-stack web application for managing 3D print jobs, featuring user authenti
 - [Authentication Flow](#authentication-flow)
 - [Print Submission Flow](#print-submission-flow)
 - [Admin Features](#admin-features)
+- [Email Whitelist Feature](#email-whitelist-feature)
 - [Development & Contribution](#development--contribution)
 - [License](#license)
 
@@ -31,6 +32,7 @@ A full-stack web application for managing 3D print jobs, featuring user authenti
 - Admin dashboard for reviewing, approving, denying, and managing print jobs
 - File storage using Google Cloud Storage
 - Role-based access control (user, admin, officer)
+- Optional email whitelist for restricting registration and OTP requests
 
 ---
 
@@ -53,11 +55,11 @@ A full-stack web application for managing 3D print jobs, featuring user authenti
 │   ├── config/             # Configuration loading
 │   ├── internal/
 │   │   ├── handlers/       # HTTP handlers (auth, prints, otp)
-│   │   ├── middleware/     # Gin middleware (auth, role)
-│   │   ├── models/         # GORM models (User, Print, OTP)
-│   │   ├── services/       # Business logic (user, print, otp, bucket)
+│   │   ├── middleware/     # Gin middleware (auth, role, whitelist)
+│   │   ├── models/         # GORM models (User, Print, OTP, EmailWhitelist)
+│   │   ├── services/       # Business logic (user, print, otp, bucket, whitelist)
 │   │   └── util/           # Utilities (email, jwt, metadata)
-│   ├── docs/               # API documentation (Swagger)
+│   ├── docs/               # API documentation (Swagger, Markdown)
 │   ├── go.mod, go.sum      # Go dependencies
 │   └── .env, .env.example  # Backend environment variables
 ├── ui/
@@ -97,6 +99,10 @@ A full-stack web application for managing 3D print jobs, featuring user authenti
 | SUPABASE_DB                | PostgreSQL database name                    |
 | SECRET_KEY                 | JWT secret key                              |
 | GCLOUD_PRINT_FILES_BUCKET  | Google Cloud Storage bucket for print files |
+| EMAIL_WHITELIST_ENABLED    | Boolean to enable/disable email whitelist   |
+| ADMIN_EMAIL                | Admin user email (created on startup)        |
+| ADMIN_FIRST_NAME           | Admin user's first name                      |
+| ADMIN_LAST_NAME            | Admin user's last name                       |
 
 ### Frontend (`ui/.env`)
 
@@ -116,6 +122,8 @@ A full-stack web application for managing 3D print jobs, featuring user authenti
 
 2. **Configure environment:**
    - Copy `.env.example` to `.env` and fill in all required values.
+   - To enable the email whitelist feature, set `EMAIL_WHITELIST_ENABLED="true"`.
+
 
 3. **Run the server:**
    ```sh
@@ -169,6 +177,9 @@ A full-stack web application for managing 3D print jobs, featuring user authenti
 - `DELETE /prints/:id` — Delete print and file (admin only)
 - `POST /prints/:id/approve` — Approve print (admin only)
 - `POST /prints/:id/deny` — Deny print with reason (admin only)
+- `GET /whitelist` — List all whitelisted emails (admin only)
+- `POST /whitelist` — Add email to whitelist (admin only)
+- `DELETE /whitelist` — Remove email from whitelist (admin only)
 
 ---
 
@@ -209,6 +220,16 @@ A full-stack web application for managing 3D print jobs, featuring user authenti
 - Approve, deny (with reason), or update status of any print
 - Batch update or delete print jobs
 - Download any print file
+- Manage email whitelist (add, remove, list whitelisted emails)
+
+---
+
+## Email Whitelist Feature
+
+- **Purpose:** Restrict registration and OTP requests to a set of approved emails.
+- **Enable:** Set `EMAIL_WHITELIST_ENABLED="true"` in your backend `.env`.
+- **Management:** Admins can add, remove, and list whitelisted emails via API or admin UI.
+- **Enforcement:** Whitelist is enforced via middleware for registration and OTP endpoints.
 
 ---
 
@@ -236,6 +257,7 @@ npm run build
 - Add new API endpoints in backend `handlers/` and `services/`.
 - Add new React components in `ui/src/components/`.
 - Update types in `ui/src/types/`.
+
 ---
 
 ## License
@@ -255,4 +277,4 @@ MIT. See [LICENSE](LICENSE) for more information.
 
 ## Contact
 
-For questions, contact [northhalltsa@gmail.com](mailto:northhalltsa@gmail.com).
+For questions, contact [northalltsa@gmail.com](mailto:northhalltsa@gmail.com)
