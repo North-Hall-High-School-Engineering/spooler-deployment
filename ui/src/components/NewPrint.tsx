@@ -31,15 +31,21 @@ export const NewPrint = () => {
         setUploadingPreview(true);
         try {
             const data = await getPrintMetadata(file);
-            if (data.stl_file) {
-                setStlData(data.stl_file);
+            if (data.model_base64) {
+                setStlData(data.model_base64);
+                setThumbnailUrl(null);
             } else if (data.thumbnail) {
                 setThumbnailUrl(data.thumbnail);
+                setStlData(null);
             } else {
-                setError("Failed to generate preview.");
+                setError("Preview not available for this file.");
+                setStlData(null);
+                setThumbnailUrl(null);
             }
         } catch (err: any) {
             setError(err.message || "Thumbnail upload failed.");
+            setStlData(null);
+            setThumbnailUrl(null);
         } finally {
             setUploadingPreview(false);
         }

@@ -98,7 +98,7 @@ func MetadataHandler() gin.HandlerFunc {
 
 		metadata, err := util.GetFileMetadata(file.Filename, fileHandle)
 		if err != nil {
-			c.JSON(500, gin.H{"error": "failed to get file metadata" + err.Error()})
+			c.JSON(500, gin.H{"error": "failed to get file metadata"})
 			return
 		}
 
