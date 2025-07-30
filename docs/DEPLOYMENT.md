@@ -24,6 +24,18 @@ This document explains how to deploy the Spooler backend and frontend.
 
 2. **Configure environment variables:**
    - Copy `.env.example` to `.env` and fill in all required values.
+   - To enable the email whitelist feature, set `EMAIL_WHITELIST_ENABLED="true"` in your `.env` file.  
+     - When enabled, only emails on the whitelist can register or request OTPs.
+     - Admins can manage the whitelist via the API or admin UI.
+   - Set `ADMIN_EMAIL`, `ADMIN_FIRST_NAME`, and `ADMIN_LAST_NAME` in your `.env` file.
+   - On first startup, the backend will create this admin user and add them to the whitelist if enabled.
+   ## CORS Allowed Origins
+
+You can configure which frontend domains are allowed to access the backend by setting the `CORS_ALLOW_ORIGINS` environment variable.  
+- **Format:** Comma-separated list of origins (e.g. `https://mydomain.com,https://another.com`)
+- **Default:** `http://localhost:5173` (for local development)
+
+This allows self-hosted users to add their own domains without editing code.
 
 3. **Install dependencies:**
    ```sh
@@ -31,7 +43,7 @@ This document explains how to deploy the Spooler backend and frontend.
    ```
 
 4. **Run database migrations:**
-   - The backend auto-migrates tables on startup.
+   - The backend auto-migrates tables on startup, including the email whitelist table if the feature is enabled.
 
 5. **Build and run the server:**
    ```sh
@@ -81,6 +93,13 @@ This document explains how to deploy the Spooler backend and frontend.
 
 ---
 
+## Email Whitelist Feature
+
+- To enable, set `EMAIL_WHITELIST_ENABLED="true"` in your backend `.env`.
+- When enabled, only whitelisted emails can register or request OTPs.
+
+---
+
 ## Environment Variables Reference
 
 See [README.md](../README.md#environment-variables) for all required variables.
@@ -92,5 +111,4 @@ See [README.md](../README.md#environment-variables) for all required variables.
 - Check logs for errors.
 - Ensure all environment variables are set.
 - Verify database and bucket permissions.
-
----
+- If using the whitelist feature, ensure the database is migrated and admins can access the whitelist

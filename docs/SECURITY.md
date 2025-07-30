@@ -18,10 +18,10 @@ This document outlines security features and best practices for the Spooler plat
 
 ---
 
-## Email Validation
+## Email Validation & Whitelisting
 
 - Emails are validated with a regex before registration and OTP requests.
-
+- If the email whitelist feature is enabled, only emails on the whitelist can register or request OTPs.
 ---
 
 ## Data Protection
@@ -44,6 +44,7 @@ This document outlines security features and best practices for the Spooler plat
 - Role-based access control is enforced in middleware.
 - Users can only access their own print jobs.
 - Admins can access all print jobs and perform management actions.
+- Email whitelist management endpoints are restricted to admins.
 
 ---
 
@@ -65,5 +66,4 @@ This document outlines security features and best practices for the Spooler plat
 - Rotate JWT secret and credentials regularly.
 - Monitor logs for suspicious activity.
 - Restrict bucket and database access to only necessary services.
-
----
+- Regularly review and update the email whitelist if

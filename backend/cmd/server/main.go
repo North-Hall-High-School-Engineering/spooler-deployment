@@ -42,7 +42,33 @@ func main() {
 		log.Fatalf("error connecting to db: %v", err)
 	}
 
-	db.AutoMigrate(models.OTP{}, models.User{}, models.Print{})
+	db.AutoMigrate(models.OTP{}, models.User{}, models.Print{}, models.EmailWhitelist{})
+
+	var admin models.User
+	result := db.Where("email = ?", config.Cfg.AdminEmail).First(&admin)
+	if result.Error != nil {
+		admin = models.User{
+			Email:     config.Cfg.AdminEmail,
+			FirstName: config.Cfg.AdminFirstName,
+			LastName:  config.Cfg.AdminLastName,
+			Role:      string(models.RoleAdmin),
+			Active:    true,
+		}
+		if err := db.Create(&admin).Error; err != nil {
+			log.Fatalf("failed to create admin user: %v", err)
+		}
+	}
+
+	// Add admin to whitelist if enabled
+	if config.Cfg.EmailWhitelistEnabled {
+		var count int64
+		db.Model(&models.EmailWhitelist{}).Where("email = ?", config.Cfg.AdminEmail).Count(&count)
+		if count == 0 {
+			if err := db.Create(&models.EmailWhitelist{Email: config.Cfg.AdminEmail}).Error; err != nil {
+				log.Fatalf("failed to add admin to whitelist: %v", err)
+			}
+		}
+	}
 
 	r, err := SetupRoutes(db)
 	if err != nil {

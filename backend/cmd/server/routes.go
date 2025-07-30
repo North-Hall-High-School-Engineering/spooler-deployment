@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"os"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/storage"
@@ -14,12 +16,23 @@ import (
 	"gorm.io/gorm"
 )
 
+func getAllowedOrigins() []string {
+	origins := os.Getenv("CORS_ALLOW_ORIGINS")
+	if origins == "" {
+		return []string{"http://localhost:5173"}
+	}
+	parts := strings.Split(origins, ",")
+	for i := range parts {
+		parts[i] = strings.TrimSpace(parts[i])
+	}
+	return parts
+}
+
 func SetupRoutes(db *gorm.DB) (*gin.Engine, error) {
 	r := gin.Default()
 
-	// CORS config
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://*", "https://*"},
+		AllowOrigins:     getAllowedOrigins(),
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		AllowCredentials: true,
@@ -27,7 +40,6 @@ func SetupRoutes(db *gorm.DB) (*gin.Engine, error) {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	// Initialize services
 	storageClient, err := storage.NewClient(context.Background())
 	if err != nil {
 		return nil, err
@@ -37,15 +49,15 @@ func SetupRoutes(db *gorm.DB) (*gin.Engine, error) {
 	otpSvc := services.NewOTPService(db)
 	bucketSvc := services.NewBucketService(db, storageClient)
 	printSvc := services.NewPrintService(db)
+	whitelistSvc := services.NewWhitelistService(db)
 
 	// Public routes
-	r.POST("/register", handlers.RegisterHandler(userSvc))
-
 	otp := r.Group("/otp")
 	{
-		otp.POST("/request", handlers.RequestOTPHandler(otpSvc))
+		otp.POST("/request", handlers.RequestOTPHandler(otpSvc, whitelistSvc))
 		otp.POST("/verify", handlers.VerifyOTPHandler(otpSvc, userSvc))
 	}
+	r.POST("/register", handlers.RegisterHandler(userSvc, whitelistSvc))
 
 	// Authenticated user routes
 	auth := r.Group("/")
@@ -71,6 +83,10 @@ func SetupRoutes(db *gorm.DB) (*gin.Engine, error) {
 			prints.POST("/:id/deny", handlers.DenyPrintHandler(printSvc))
 			prints.PUT("/:id/status", handlers.UpdatePrintStatusHandler(printSvc))
 		}
+
+		admin.GET("/whitelist", middleware.WhitelistEnabledMiddleware(), handlers.ListWhitelistHandler(whitelistSvc))
+		admin.POST("/whitelist", middleware.WhitelistEnabledMiddleware(), handlers.AddWhitelistHandler(whitelistSvc))
+		admin.DELETE("/whitelist", middleware.WhitelistEnabledMiddleware(), handlers.RemoveWhitelistHandler(whitelistSvc))
 	}
 
 	return r, nil

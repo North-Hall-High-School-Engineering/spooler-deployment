@@ -29,3 +29,33 @@ export async function checkAuth() {
     return null
   }
 }
+
+export async function getWhitelist() {
+    const res = await fetch(`${API_BASE_URL}/whitelist`, {
+        credentials: "include",
+    });
+    if (!res.ok) throw new Error("Failed to fetch whitelist");
+    return res.json();
+}
+
+export async function addWhitelist(emails: string[]) {
+    const res = await fetch(`${API_BASE_URL}/whitelist`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ emails }),
+    });
+    if (!res.ok) throw new Error("Failed to add email(s)");
+    return res.json();
+}
+
+export async function removeWhitelist(email: string) {
+    const res = await fetch(`${API_BASE_URL}/whitelist`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email }),
+    });
+    if (!res.ok) throw new Error("Failed to remove email");
+    return res.json();
+}

@@ -25,6 +25,12 @@ type Config struct {
 	SecretKey string
 
 	GcloudPrintFilesBucket string
+
+	EmailWhitelistEnabled bool
+
+	AdminEmail     string
+	AdminFirstName string
+	AdminLastName  string
 }
 
 func LoadConfig() error {
@@ -32,7 +38,9 @@ func LoadConfig() error {
 
 	requiredKeys := []string{
 		"PORT", "SMTP_EMAIL", "SMTP_PASSWORD", "SMTP_HOST", "SMTP_PORT",
-		"SUPABASE_HOST", "SUPABASE_PORT", "SUPABASE_USER", "SUPABASE_PASSWORD", "SUPABASE_DB", "SECRET_KEY", "GCLOUD_PRINT_FILES_BUCKET",
+		"SUPABASE_HOST", "SUPABASE_PORT", "SUPABASE_USER", "SUPABASE_PASSWORD", "SUPABASE_DB", "SECRET_KEY",
+		"GCLOUD_PRINT_FILES_BUCKET", "EMAIL_WHITELIST_ENABLED",
+		"ADMIN_EMAIL", "ADMIN_FIRST_NAME", "ADMIN_LAST_NAME",
 	}
 
 	for _, key := range requiredKeys {
@@ -55,6 +63,11 @@ func LoadConfig() error {
 
 		SecretKey:              os.Getenv("SECRET_KEY"),
 		GcloudPrintFilesBucket: os.Getenv("GCLOUD_PRINT_FILES_BUCKET"),
+		EmailWhitelistEnabled:  os.Getenv("EMAIL_WHITELIST_ENABLED") == "true",
+
+		AdminEmail:     os.Getenv("ADMIN_EMAIL"),
+		AdminFirstName: os.Getenv("ADMIN_FIRST_NAME"),
+		AdminLastName:  os.Getenv("ADMIN_LAST_NAME"),
 	}
 
 	return nil

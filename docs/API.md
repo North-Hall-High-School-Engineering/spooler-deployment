@@ -23,9 +23,14 @@ Registers a new user.
 }
 ```
 
+**Notes:**
+- If email whitelisting is enabled, only emails on the whitelist can register.  
+- Returns `403 Forbidden` if the email is not allowed.
+
 **Responses:**
 - `201 Created` — User registered
 - `400 Bad Request` — Invalid input
+- `403 Forbidden` — Email not allowed (whitelist enabled)
 - `409 Conflict` — Email already registered
 
 ---
@@ -43,9 +48,14 @@ Request a one-time passcode for login or registration.
 }
 ```
 
+**Notes:**
+- If email whitelisting is enabled, only whitelisted emails can request an OTP.  
+- Returns `403 Forbidden` if the email is not allowed.
+
 **Responses:**
 - `200 OK` — OTP sent to email
 - `400 Bad Request` — Invalid email
+- `403 Forbidden` — Email not allowed (whitelist enabled)
 
 ---
 
@@ -193,6 +203,60 @@ Deletes the print and its file.
 
 ---
 
+### Email Whitelist Management
+
+All endpoints below require the user to have the `admin` role.
+
+#### List Whitelisted Emails
+
+**GET** `/whitelist`
+
+Returns a list of all whitelisted emails.
+
+**Responses:**
+- `200 OK` — Array of whitelisted emails
+
+---
+
+#### Add Email(s) to Whitelist
+
+**POST** `/whitelist`
+
+Add email(s) to the whitelist.
+
+**Request Body:**
+```json
+{
+  "emails": ["user@example.com", "user2@example.com"]
+}
+```
+
+**Responses:**
+- `200 OK` — Email added
+- `400 Bad Request` — Invalid email
+- `409 Conflict` — Email already whitelisted
+
+---
+
+#### Remove Email from Whitelist
+
+**DELETE** `/whitelist`
+
+Remove an email from the whitelist.
+
+**Request Body:**
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+**Responses:**
+- `200 OK` — Email removed
+- `400 Bad Request` — Invalid email
+
+---
+
 ## Error Handling
 
 All errors return a JSON object:
@@ -208,7 +272,7 @@ All errors return a JSON object:
 - `201 Created` — Resource created
 - `400 Bad Request` — Invalid input
 - `401 Unauthorized` — Not authenticated
-- `403 Forbidden` — Insufficient permissions
+- `403 Forbidden` — Insufficient permissions or email not allowed
 - `404 Not Found` — Resource not found
 - `409 Conflict` — Duplicate resource
 - `500 Internal Server Error` — Server error
