@@ -1,0 +1,10 @@
+.git
+.gitignore
+Dockerfile
+*.md
+*.log
+.env
+.env.example
+node_modules
+ui/
+docs/
