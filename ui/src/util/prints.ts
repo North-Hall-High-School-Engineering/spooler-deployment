@@ -13,7 +13,7 @@ export async function createPrint(file: File, requestedFilamentColor: string) {
     formData.append("file_name", file.name);
     formData.append("requested_filament_color", requestedFilamentColor);
 
-    const res = await axios.post(`${API_BASE_URL}/new`, formData, {
+    const res = await axios.post(`${API_BASE_URL}/prints/new`, formData, {
         withCredentials: true,
         headers: { "Content-Type": "multipart/form-data" },
     });
