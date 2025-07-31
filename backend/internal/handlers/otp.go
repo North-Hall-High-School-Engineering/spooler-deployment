@@ -97,6 +97,7 @@ func VerifyOTPHandler(otpSvc *services.OTPService, userSvc *services.UserService
 			Value:    token,
 			MaxAge:   3600 * 24 * 7,
 			Secure:   secure,
+			SameSite: http.SameSiteNoneMode,
 			Path:     "/",
 			HttpOnly: true,
 		})
