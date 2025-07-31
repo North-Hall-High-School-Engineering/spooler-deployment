@@ -161,35 +161,16 @@ List all print jobs.
 
 ---
 
-### Approve Print
+### Update Print
+Tailored for denying prints, might be updated in the future
 
-**POST** `/prints/:id/approve`
-
-Approve a print job.
-
----
-
-### Deny Print
-
-**POST** `/prints/:id/deny`
+**PUT** `/prints/:id`
 
 **Request Body:**
 ```json
 {
-  "reason": "Reason for denial"
-}
-```
-
----
-
-### Update Print Status
-
-**PUT** `/prints/:id/status`
-
-**Request Body:**
-```json
-{
-  "status": "printing"
+  "status": "printing",
+  "denial_reason": ""
 }
 ```
 

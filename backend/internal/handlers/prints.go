@@ -145,52 +145,6 @@ func AllPrintsHandler(printSvc *services.PrintService) gin.HandlerFunc {
 	}
 }
 
-func ApprovePrintHandler(printSvc *services.PrintService) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		idParam := c.Param("id")
-		printID, err := strconv.ParseUint(idParam, 10, 64)
-		if err != nil {
-			c.JSON(400, gin.H{"error": "invalid print id"})
-			return
-		}
-
-		if err := printSvc.ApprovePrint(uint(printID)); err != nil {
-			c.JSON(500, gin.H{"error": "failed to approve print"})
-			return
-		}
-
-		c.JSON(200, gin.H{"message": "print approved"})
-	}
-}
-
-type DenyPrintRequest struct {
-	Reason string `json:"reason" binding:"required"`
-}
-
-func DenyPrintHandler(printSvc *services.PrintService) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		idParam := c.Param("id")
-		printID, err := strconv.ParseUint(idParam, 10, 64)
-		if err != nil {
-			c.JSON(400, gin.H{"error": "invalid print id"})
-			return
-		}
-
-		var req DenyPrintRequest
-		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(400, gin.H{"error": "invalid request body"})
-			return
-		}
-
-		if err := printSvc.DenyPrint(uint(printID), req.Reason); err != nil {
-			c.JSON(500, gin.H{"error": "failed to deny print"})
-			return
-		}
-
-		c.JSON(200, gin.H{"message": "print denied"})
-	}
-}
-
 func DeletePrintHandler(printSvc *services.PrintService, bucketSvc *services.BucketService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idParam := c.Param("id")
@@ -234,8 +188,9 @@ func DownloadPrintFileHandler(bucketSvc *services.BucketService) gin.HandlerFunc
 	}
 }
 
-type UpdatePrintStatusRequest struct {
-	Status string `json:"status" binding:"required"`
+type UpdatePrintRequest struct {
+	Status       string `json:"status"`
+	DenialReason string `json:"denial_reason"`
 }
 
 func isValidPrintStatus(status string) bool {
@@ -254,7 +209,7 @@ func isValidPrintStatus(status string) bool {
 	}
 }
 
-func UpdatePrintStatusHandler(printSvc *services.PrintService) gin.HandlerFunc {
+func UpdatePrintHandler(printSvc *services.PrintService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idParam := c.Param("id")
 		printID, err := strconv.ParseUint(idParam, 10, 64)
@@ -262,19 +217,34 @@ func UpdatePrintStatusHandler(printSvc *services.PrintService) gin.HandlerFunc {
 			c.JSON(400, gin.H{"error": "invalid print id"})
 			return
 		}
-		var req UpdatePrintStatusRequest
+		var req UpdatePrintRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(400, gin.H{"error": "invalid request body"})
 			return
 		}
-		if !isValidPrintStatus(req.Status) {
-			c.JSON(400, gin.H{"error": "invalid status"})
+
+		updates := make(map[string]interface{})
+
+		if req.Status != "" {
+			if !isValidPrintStatus(req.Status) {
+				c.JSON(400, gin.H{"error": "invalid status"})
+				return
+			}
+			updates["status"] = req.Status
+		}
+		if req.DenialReason != "" {
+			updates["denial_reason"] = req.DenialReason
+		}
+
+		if len(updates) == 0 {
+			c.JSON(400, gin.H{"error": "no fields to update"})
 			return
 		}
-		if err := printSvc.UpdatePrintStatus(uint(printID), models.PrintStatus(req.Status)); err != nil {
-			c.JSON(500, gin.H{"error": "failed to update status"})
+
+		if err := printSvc.UpdatePrint(uint(printID), updates); err != nil {
+			c.JSON(500, gin.H{"error": "failed to update print"})
 			return
 		}
-		c.JSON(200, gin.H{"message": "status updated"})
+		c.JSON(200, gin.H{"message": "print updated"})
 	}
 }

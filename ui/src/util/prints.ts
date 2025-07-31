@@ -37,10 +37,13 @@ export async function getAllPrints() {
     return res.data;
 }
 
-export async function updatePrintStatus(id: number, status: string, denialReason?: string) {
+export async function updatePrint(id: number, update: Partial<{
+    status?: string;
+    denial_reason?: string;
+}>) {
     const res = await axios.put(
-        `${API_BASE_URL}/prints/${id}/status`,
-        { status, denialReason },
+        `${API_BASE_URL}/prints/${id}`,
+        update,
         { withCredentials: true }
     );
     return res.data;
@@ -50,4 +53,3 @@ export async function deletePrint(id: number) {
     const res = await axios.delete(`${API_BASE_URL}/prints/${id}`, { withCredentials: true });
     return res.data;
 }
-

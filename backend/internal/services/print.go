@@ -39,21 +39,6 @@ func (s *PrintService) AllPrints() ([]models.Print, error) {
 	return prints, nil
 }
 
-func (s *PrintService) ApprovePrint(printID uint) error {
-	return s.db.Model(&models.Print{}).
-		Where("id = ?", printID).
-		Update("status", models.StatusPendingPrint).Error
-}
-
-func (s *PrintService) DenyPrint(printID uint, reason string) error {
-	return s.db.Model(&models.Print{}).
-		Where("id = ?", printID).
-		Updates(map[string]interface{}{
-			"status":        models.StatusDenied,
-			"denial_reason": reason,
-		}).Error
-}
-
 func (s *PrintService) DeletePrint(printID uint) error {
 	return s.db.Delete(&models.Print{}, printID).Error
 }
@@ -66,8 +51,8 @@ func (s *PrintService) GetPrintByID(id uint) (*models.Print, error) {
 	return &print, nil
 }
 
-func (s *PrintService) UpdatePrintStatus(printID uint, status models.PrintStatus) error {
+func (s *PrintService) UpdatePrint(printID uint, updates map[string]any) error {
 	return s.db.Model(&models.Print{}).
 		Where("id = ?", printID).
-		Update("status", status).Error
+		Updates(updates).Error
 }

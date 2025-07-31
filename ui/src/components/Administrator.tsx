@@ -3,7 +3,7 @@ import { useAuth } from "../context/authContext";
 import { Navbar } from "./Navbar";
 import { useNavigate } from "react-router-dom";
 import type { Print, PrintStatus } from "../types/print";
-import { getAllPrints, updatePrintStatus, deletePrint } from "../util/prints";
+import { getAllPrints, updatePrint, deletePrint } from "../util/prints";
 import WhitelistManager from "./WhitelistManager";
 
 const PRINT_STATUS_OPTIONS: { label: string; value: PrintStatus }[] = [
@@ -76,7 +76,7 @@ function Administrator() {
         try {
             await Promise.all(
                 selected.map((id) =>
-                    updatePrintStatus(id, status)
+                    updatePrint(id, {status})
                 )
             );
             setPrints((prev) =>
@@ -116,7 +116,7 @@ function Administrator() {
         setActionLoading(true);
         setError("");
         try {
-            await updatePrintStatus(id, status, denialReason);
+            await updatePrint(id, {status: status, denial_reason: denialReason});
             setPrints((prev) =>
                 prev.map((p) =>
                     p.ID === id

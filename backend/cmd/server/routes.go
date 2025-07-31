@@ -79,9 +79,7 @@ func SetupRoutes(db *gorm.DB) (*gin.Engine, error) {
 			prints.GET("/all", handlers.AllPrintsHandler(printSvc))
 
 			prints.DELETE("/:id", handlers.DeletePrintHandler(printSvc, bucketSvc))
-			prints.POST("/:id/approve", handlers.ApprovePrintHandler(printSvc))
-			prints.POST("/:id/deny", handlers.DenyPrintHandler(printSvc))
-			prints.PUT("/:id/status", handlers.UpdatePrintStatusHandler(printSvc))
+			prints.PUT("/:id", handlers.UpdatePrintHandler(printSvc))
 		}
 
 		admin.GET("/whitelist", middleware.WhitelistEnabledMiddleware(), handlers.ListWhitelistHandler(whitelistSvc))

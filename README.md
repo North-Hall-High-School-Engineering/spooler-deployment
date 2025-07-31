@@ -173,10 +173,8 @@ A full-stack web application for managing 3D print jobs, featuring user authenti
 ### Admin
 
 - `GET /prints/all` — List all print jobs (admin only)
-- `PUT /prints/:id/status` — Update print status (admin only)
+- `PUT /prints/:id` — Update print (admin only)
 - `DELETE /prints/:id` — Delete print and file (admin only)
-- `POST /prints/:id/approve` — Approve print (admin only)
-- `POST /prints/:id/deny` — Deny print with reason (admin only)
 - `GET /whitelist` — List all whitelisted emails (admin only)
 - `POST /whitelist` — Add email to whitelist (admin only)
 - `DELETE /whitelist` — Remove email from whitelist (admin only)
