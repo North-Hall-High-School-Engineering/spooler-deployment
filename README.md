@@ -103,6 +103,7 @@ A full-stack web application for managing 3D print jobs, featuring user authenti
 | ADMIN_EMAIL                | Admin user email (created on startup)        |
 | ADMIN_FIRST_NAME           | Admin user's first name                      |
 | ADMIN_LAST_NAME            | Admin user's last name                       |
+| CORS_ALLOW_ORIGINS         | Comma seperated list of allowed client urls  |
 
 ### Frontend (`ui/.env`)
 
