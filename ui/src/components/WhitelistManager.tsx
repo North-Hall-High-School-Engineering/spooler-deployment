@@ -6,13 +6,13 @@ export default function WhitelistManager() {
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-    const [enabled, setEnabled] = useState(true)
+    const [enabled, setEnabled] = useState(true);
 
     function parseEmails(input: string): string[] {
-    return input
-        .split(/[\s,;]+/)
-        .map(e => e.trim())
-        .filter(e => e.length > 0);
+        return input
+            .split(/[\s,;]+/)
+            .map(e => e.trim())
+            .filter(e => e.length > 0);
     }
 
     const handleAdd = async () => {
@@ -25,7 +25,12 @@ export default function WhitelistManager() {
             setInput("");
             fetchList();
         } catch (err: any) {
-            setError(err.message || "Failed to add email(s)");
+            if (err?.message === "whitelist not enabled" || err?.response?.data?.error === "whitelist not enabled") {
+                setEnabled(false);
+                setError("");
+            } else {
+                setError(err.message || "Failed to add email(s)");
+            }
         } finally {
             setLoading(false);
         }
@@ -37,11 +42,16 @@ export default function WhitelistManager() {
         try {
             const list = await getWhitelist();
             setEmails(list.map((e: any) => e.Email));
-        } catch (error) {
-            if (error == "whitelist not enabled") {
+        } catch (err: any) {
+            if (
+                err?.message === "whitelist not enabled" ||
+                err?.response?.data?.error === "whitelist not enabled"
+            ) {
                 setEnabled(false);
+                setError("");
+            } else {
+                setError("Failed to fetch whitelist");
             }
-            setError("Failed to fetch whitelist");
         } finally {
             setLoading(false);
         }
@@ -55,8 +65,13 @@ export default function WhitelistManager() {
         try {
             await removeWhitelist(email);
             fetchList();
-        } catch {
-            setError("Failed to remove email");
+        } catch (err: any) {
+            if (err?.message === "whitelist not enabled" || err?.response?.data?.error === "whitelist not enabled") {
+                setEnabled(false);
+                setError("");
+            } else {
+                setError("Failed to remove email");
+            }
         } finally {
             setLoading(false);
         }
