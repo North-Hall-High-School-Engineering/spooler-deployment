@@ -6,7 +6,7 @@ export default function WhitelistManager() {
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-    const [enabled, setEnabled] = useState(true);
+    const [enabled, setEnabled] = useState(false);
 
     function parseEmails(input: string): string[] {
         return input
@@ -37,6 +37,7 @@ export default function WhitelistManager() {
         try {
             const list = await getWhitelist();
             setEmails(list.map((e: any) => e.Email));
+            setEnabled(true)
         } catch (err: any) {
             setEnabled(false)
             setError("Failed to fetch whitelist");
