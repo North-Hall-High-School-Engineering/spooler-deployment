@@ -25,12 +25,7 @@ export default function WhitelistManager() {
             setInput("");
             fetchList();
         } catch (err: any) {
-            if (err?.message === "whitelist not enabled" || err?.response?.data?.error === "whitelist not enabled") {
-                setEnabled(false);
-                setError("");
-            } else {
-                setError(err.message || "Failed to add email(s)");
-            }
+            setError("Failed to add email(s)");
         } finally {
             setLoading(false);
         }
@@ -43,15 +38,8 @@ export default function WhitelistManager() {
             const list = await getWhitelist();
             setEmails(list.map((e: any) => e.Email));
         } catch (err: any) {
-            if (
-                err?.message === "whitelist not enabled" ||
-                err?.response?.data?.error === "whitelist not enabled"
-            ) {
-                setEnabled(false);
-                setError("");
-            } else {
-                setError("Failed to fetch whitelist");
-            }
+            setEnabled(false)
+            setError("Failed to fetch whitelist");
         } finally {
             setLoading(false);
         }
@@ -66,12 +54,7 @@ export default function WhitelistManager() {
             await removeWhitelist(email);
             fetchList();
         } catch (err: any) {
-            if (err?.message === "whitelist not enabled" || err?.response?.data?.error === "whitelist not enabled") {
-                setEnabled(false);
-                setError("");
-            } else {
-                setError("Failed to remove email");
-            }
+            setError("Failed to remove email");
         } finally {
             setLoading(false);
         }
