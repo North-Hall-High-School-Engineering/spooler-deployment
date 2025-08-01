@@ -82,6 +82,11 @@ func SetupRoutes(db *gorm.DB) (*gin.Engine, error) {
 			prints.PUT("/:id", handlers.UpdatePrintHandler(printSvc))
 		}
 
+		users := admin.Group("/users")
+		{
+			users.GET("/:id", handlers.GetUserByIDHandler(userSvc))
+		}
+
 		admin.GET("/whitelist", middleware.WhitelistEnabledMiddleware(), handlers.ListWhitelistHandler(whitelistSvc))
 		admin.POST("/whitelist", middleware.WhitelistEnabledMiddleware(), handlers.AddWhitelistHandler(whitelistSvc))
 		admin.DELETE("/whitelist", middleware.WhitelistEnabledMiddleware(), handlers.RemoveWhitelistHandler(whitelistSvc))

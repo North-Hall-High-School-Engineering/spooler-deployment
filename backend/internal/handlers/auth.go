@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/torbenconto/spooler/config"
@@ -66,5 +67,23 @@ func MeHandler() gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, gin.H{"message": "authenticated", "user": user})
+	}
+}
+
+func GetUserByIDHandler(userSvc *services.UserService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		idParam := c.Param("id")
+		userID, err := strconv.ParseUint(idParam, 10, 64)
+		if err != nil {
+			c.JSON(400, gin.H{"error": "invalid print id"})
+			return
+		}
+
+		user, err := userSvc.GetUserByID(uint(userID))
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "ok", "user": user})
 	}
 }
