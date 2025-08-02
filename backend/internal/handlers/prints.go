@@ -58,14 +58,19 @@ func NewPrintHandler(bucketSvc *services.BucketService, printSvc *services.Print
 			c.JSON(500, gin.H{"error": "failed to open file"})
 			return
 		}
-		defer fileHandle.Close()
+		storedFileName := fmt.Sprintf("%s%s", uuid.New().String(), filepath.Ext(file.Filename))
 
-		ext := filepath.Ext(file.Filename)
-		storedFileName := fmt.Sprintf("%s%s", uuid.New().String(), ext)
+		pr, pw := io.Pipe()
 
 		go func() {
-			_ = bucketSvc.UploadFile(context.Background(), storedFileName, fileHandle)
+			defer fileHandle.Close()
+			_, err := io.Copy(pw, fileHandle)
+			_ = pw.CloseWithError(err)
 		}()
+
+		if err := bucketSvc.UploadFile(c.Request.Context(), storedFileName, pr); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to upload file"})
+		}
 
 		// if err := bucketSvc.UploadFile(c, storedFileName, fileHandle); err != nil {
 		// 	c.JSON(500, gin.H{"error": "failed to upload file to bucket"})
