@@ -124,7 +124,7 @@ List all print jobs submitted by the authenticated user.
 
 ### Get File Metadata
 
-**POST** `/metadata`
+**POST** `/preview`
 
 Get STL preview or 3MF thumbnail.
 
@@ -132,7 +132,7 @@ Get STL preview or 3MF thumbnail.
 - `file`: STL or 3MF file (required)
 
 **Responses:**
-- `200 OK` — Metadata (base64 preview or thumbnail)
+- `200 OK` — Metadata (FilePreview struct)
 - `400 Bad Request` — No file
 
 ---
@@ -161,35 +161,16 @@ List all print jobs.
 
 ---
 
-### Approve Print
+### Update Print
+Tailored for denying prints, might be updated in the future
 
-**POST** `/prints/:id/approve`
-
-Approve a print job.
-
----
-
-### Deny Print
-
-**POST** `/prints/:id/deny`
+**PUT** `/prints/:id`
 
 **Request Body:**
 ```json
 {
-  "reason": "Reason for denial"
-}
-```
-
----
-
-### Update Print Status
-
-**PUT** `/prints/:id/status`
-
-**Request Body:**
-```json
-{
-  "status": "printing"
+  "status": "printing",
+  "denial_reason": ""
 }
 ```
 

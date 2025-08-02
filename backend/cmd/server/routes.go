@@ -66,7 +66,7 @@ func SetupRoutes(db *gorm.DB) (*gin.Engine, error) {
 		auth.GET("/me", handlers.MeHandler())
 		auth.GET("/me/prints", handlers.GetUserPrintsHandler(printSvc))
 		auth.GET("/bucket/:filename", handlers.DownloadPrintFileHandler(bucketSvc))
-		auth.POST("/metadata", handlers.MetadataHandler())
+		auth.POST("/preview", handlers.PreviewHandler())
 		auth.POST("/prints/new", handlers.NewPrintHandler(bucketSvc, printSvc))
 	}
 
@@ -79,9 +79,12 @@ func SetupRoutes(db *gorm.DB) (*gin.Engine, error) {
 			prints.GET("/all", handlers.AllPrintsHandler(printSvc))
 
 			prints.DELETE("/:id", handlers.DeletePrintHandler(printSvc, bucketSvc))
-			prints.POST("/:id/approve", handlers.ApprovePrintHandler(printSvc))
-			prints.POST("/:id/deny", handlers.DenyPrintHandler(printSvc))
-			prints.PUT("/:id/status", handlers.UpdatePrintStatusHandler(printSvc))
+			prints.PUT("/:id", handlers.UpdatePrintHandler(printSvc))
+		}
+
+		users := admin.Group("/users")
+		{
+			users.GET("/:id", handlers.GetUserByIDHandler(userSvc))
 		}
 
 		admin.GET("/whitelist", middleware.WhitelistEnabledMiddleware(), handlers.ListWhitelistHandler(whitelistSvc))

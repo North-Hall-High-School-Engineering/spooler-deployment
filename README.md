@@ -103,6 +103,7 @@ A full-stack web application for managing 3D print jobs, featuring user authenti
 | ADMIN_EMAIL                | Admin user email (created on startup)        |
 | ADMIN_FIRST_NAME           | Admin user's first name                      |
 | ADMIN_LAST_NAME            | Admin user's last name                       |
+| CORS_ALLOW_ORIGINS         | Comma seperated list of allowed client urls  |
 
 ### Frontend (`ui/.env`)
 
@@ -167,16 +168,14 @@ A full-stack web application for managing 3D print jobs, featuring user authenti
 
 - `POST /prints/new` — Submit a new print job (authenticated)
 - `GET /me/prints` — List user's print jobs (authenticated)
-- `POST /metadata` — Get STL/3MF file metadata (preview/thumbnail)
+- `POST /preview` — Get STL/3MF file preview/thumbnail
 - `GET /bucket/:filename` — Download print file
 
 ### Admin
 
 - `GET /prints/all` — List all print jobs (admin only)
-- `PUT /prints/:id/status` — Update print status (admin only)
+- `PUT /prints/:id` — Update print (admin only)
 - `DELETE /prints/:id` — Delete print and file (admin only)
-- `POST /prints/:id/approve` — Approve print (admin only)
-- `POST /prints/:id/deny` — Deny print with reason (admin only)
 - `GET /whitelist` — List all whitelisted emails (admin only)
 - `POST /whitelist` — Add email to whitelist (admin only)
 - `DELETE /whitelist` — Remove email from whitelist (admin only)

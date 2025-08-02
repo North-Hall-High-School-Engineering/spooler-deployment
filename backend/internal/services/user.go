@@ -51,6 +51,19 @@ func (s *UserService) GetUserByEmail(email string) (*models.User, error) {
 	return &user, nil
 }
 
+func (s *UserService) GetUserByID(id uint) (*models.User, error) {
+	var user models.User
+	if err := s.db.Where("id = ?", id).First(&user).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf("user not found")
+		}
+
+		return nil, err
+	}
+
+	return &user, nil
+}
+
 // func (s *UserService) ValidatePIN(user *models.User, pin string) {
 
 // }
