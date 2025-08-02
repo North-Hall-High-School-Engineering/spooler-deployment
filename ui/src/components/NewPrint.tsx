@@ -9,7 +9,7 @@ export const NewPrint = () => {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
-    const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
+    // const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
     const [stlData, setStlData] = useState<string | null>(null);
     const [uploadingPreview, setUploadingPreview] = useState(false);
     const [customColor, setCustomColor] = useState("#ffffff");
@@ -29,7 +29,7 @@ export const NewPrint = () => {
         }
 
         setFile(selectedFile);
-        setThumbnailUrl(null);
+        // setThumbnailUrl(null);
         setStlData(null);
         setError("");
 
@@ -59,7 +59,6 @@ export const NewPrint = () => {
         const droppedFiles = e.dataTransfer.files;
         if (droppedFiles.length > 0) {
             await processFile(droppedFiles[0]);
-            // Update the hidden input to satisfy form validation
             const input = e.currentTarget.querySelector('input[type="file"]') as HTMLInputElement;
             if (input) {
                 const dataTransfer = new DataTransfer();
@@ -75,19 +74,19 @@ export const NewPrint = () => {
             const data = await getPrintPreview(file);
             if (data.type === "stl" && data.model_data) {
                 setStlData(data.model_data);
-                setThumbnailUrl(null);
+                // setThumbnailUrl(null);
             } else if (data.type === "3mf" && data.model_data) {
                 setStlData(data.model_data);
-                setThumbnailUrl(null);
+                // setThumbnailUrl(null);
             } else {
                 setError("Preview not available for this file.");
                 setStlData(null);
-                setThumbnailUrl(null);
+                // setThumbnailUrl(null);
             }
         } catch (err: any) {
             setError(err.message || "Preview generation failed.");
             setStlData(null);
-            setThumbnailUrl(null);
+            // setThumbnailUrl(null);
         } finally {
             setUploadingPreview(false);
         }
