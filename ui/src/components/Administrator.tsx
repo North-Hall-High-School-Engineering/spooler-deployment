@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useAuth } from "../context/authContext";
 import { Navbar } from "./Navbar";
 import { useNavigate } from "react-router-dom";
-import type { Print, PrintStatus } from "../types/print";
+import { QUICK_DENY_REASONS, type Print, type PrintStatus } from "../types/print";
 import { getAllPrints, updatePrint, deletePrint } from "../util/prints";
 import WhitelistManager from "./WhitelistManager";
 import { type User } from "../types/user";
@@ -481,6 +481,7 @@ function Administrator() {
                                                     />
                                                 </td>
                                                 <td className="px-4 py-2 border-b truncate">{print.StoredFileName.slice(0, 11 - 3) + '...'}</td>
+                                                {/* make this use the STATUS_OPTIONS to display a human friendly name */}
                                                 <td className="px-4 py-2 border-b capitalize">{print.Status}</td>
                                                 <td className="px-4 py-2 border-b">
                                                     <div className="flex items-center gap-2">
@@ -634,37 +635,62 @@ function Administrator() {
                     </div>
                 )}
                 {denyModal.open && (
-                    <div className="fixed inset-0 flex items-center justify-center z-50">
-                        <div className="bg-white rounded shadow-lg p-6 w-full max-w-xs">
-                            <h2 className="text-lg mb-2">
-                                {denyModal.isBatch ? "Deny Selected Prints" : "Deny Print"}
-                            </h2>
+                    <div className="fixed inset-0 flex items-center justify-center z-50 bg-opacity-50">
+                        <div className="bg-white border border-1 p-6 w-full max-w-md">
+                        <h2 className="text-lg font-semibold mb-4">
+                            {denyModal.isBatch ? "Deny Selected Prints" : "Deny Print"}
+                        </h2>
+
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Quick Reason:
+                            </label>
+                            <select
+                            className="w-full border rounded p-2 text-sm"
+                            value={QUICK_DENY_REASONS.includes(denyReason) ? denyReason : ""}
+                            onChange={e => setDenyReason(e.target.value)}
+                            >
+                            <option value="">Select a reason...</option>
+                            {QUICK_DENY_REASONS.map(reason => (
+                                <option key={reason} value={reason}>
+                                {reason}
+                                </option>
+                            ))}
+                            </select>
+                        </div>
+
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Custom Reason:
+                            </label>
                             <textarea
-                                className="w-full border rounded p-2 mb-3 text-sm"
-                                rows={3}
-                                placeholder="Reason for denial"
-                                value={denyReason}
-                                onChange={e => setDenyReason(e.target.value)}
-                                autoFocus
+                            className="w-full border rounded p-2 text-sm"
+                            rows={3}
+                            placeholder="Enter custom reason for denial..."
+                            value={denyReason}
+                            onChange={e => setDenyReason(e.target.value)}
                             />
-                            <div className="flex justify-end gap-2">
-                                <button
-                                    className="px-3 py-1 rounded text-xs bg-gray-200 hover:bg-gray-300"
-                                    onClick={closeDenyModal}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    className="px-3 py-1 rounded text-xs bg-red-500 text-white hover:bg-red-600"
-                                    onClick={handleDeny}
-                                    disabled={actionLoading || !denyReason.trim()}
-                                >
-                                    Deny
-                                </button>
-                            </div>
+                        </div>
+
+                        <div className="flex justify-end gap-2">
+                            <button
+                            className="px-4 py-2 rounded text-sm bg-gray-200 hover:bg-gray-300 transition-colors"
+                            onClick={closeDenyModal}
+                            disabled={actionLoading}
+                            >
+                            Cancel
+                            </button>
+                            <button
+                            className="px-4 py-2 rounded text-sm bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={handleDeny}
+                            disabled={actionLoading || !denyReason.trim()}
+                            >
+                            {actionLoading ? "Denying..." : "Deny"}
+                            </button>
+                        </div>
                         </div>
                     </div>
-                )}
+                    )}
                 <WhitelistManager />
             </main>
         </div>

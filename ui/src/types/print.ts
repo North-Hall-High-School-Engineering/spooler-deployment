@@ -20,3 +20,14 @@ export interface Print {
   CreatedAt: string;
   UpdatedAt: string;
 }
+
+export const QUICK_DENY_REASONS = [
+    "File contains inappropriate content",
+    "Model too large for available printers",
+    "Poor file quality/corrupted",
+    "Duplicate request",
+    "Against printing policy",
+    "Insufficient detail for printing",
+    "Copyright infringement",
+    "Safety concerns"
+];
