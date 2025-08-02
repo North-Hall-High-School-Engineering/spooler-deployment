@@ -168,7 +168,7 @@ A full-stack web application for managing 3D print jobs, featuring user authenti
 
 - `POST /prints/new` — Submit a new print job (authenticated)
 - `GET /me/prints` — List user's print jobs (authenticated)
-- `POST /metadata` — Get STL/3MF file metadata (preview/thumbnail)
+- `POST /preview` — Get STL/3MF file preview/thumbnail
 - `GET /bucket/:filename` — Download print file
 
 ### Admin

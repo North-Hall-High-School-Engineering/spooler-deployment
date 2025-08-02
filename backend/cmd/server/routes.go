@@ -66,7 +66,7 @@ func SetupRoutes(db *gorm.DB) (*gin.Engine, error) {
 		auth.GET("/me", handlers.MeHandler())
 		auth.GET("/me/prints", handlers.GetUserPrintsHandler(printSvc))
 		auth.GET("/bucket/:filename", handlers.DownloadPrintFileHandler(bucketSvc))
-		auth.POST("/metadata", handlers.MetadataHandler())
+		auth.POST("/preview", handlers.PreviewHandler())
 		auth.POST("/prints/new", handlers.NewPrintHandler(bucketSvc, printSvc))
 	}
 
