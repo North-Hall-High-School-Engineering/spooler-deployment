@@ -25,7 +25,6 @@ func RegisterHandler(userSvc *services.UserService, whitelistSvc *services.White
 			return
 		}
 
-		// Validate email
 		if !util.ValidateEmail(req.Email) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid email format"})
 			return

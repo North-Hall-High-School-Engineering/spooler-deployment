@@ -108,7 +108,7 @@ const (
 )
 
 type FilePreview struct {
-	Type FilePreviewType `json:"type"` // enum-like: "stl", "3mf", "gcode.3mf"
+	Type FilePreviewType `json:"type"` //"stl", "3mf", "gcode.3mf"
 
 	ModelData    *string `json:"model_data,omitempty"`    // base64, present for stl/3mf
 	PreviewImage *string `json:"preview_image,omitempty"` // base64 PNG for gcode.3mf
@@ -142,7 +142,6 @@ func PreviewHandler() gin.HandlerFunc {
 
 		fileExtension := strings.Join(fileExtensions, "")
 		switch fileExtension {
-		// Binary filetypes
 		case ".stl", ".3mf":
 			content, err := io.ReadAll(fileHandle)
 			if err != nil {
@@ -158,6 +157,7 @@ func PreviewHandler() gin.HandlerFunc {
 
 			c.JSON(http.StatusOK, FilePreview{Type: previewType, ModelData: &encoded})
 			return
+			// case ".gcode.3mf":
 		}
 	}
 }

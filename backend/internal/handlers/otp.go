@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -42,21 +41,20 @@ func RequestOTPHandler(otpSvc *services.OTPService, whitelistSvc *services.White
 			return
 		}
 
-		go func() {
-			err := (&util.EmailSender{
-				From:     config.Cfg.SMTPEmail,
-				Password: config.Cfg.SMTPPassword,
-				SMTPHost: config.Cfg.SMTPHost,
-				SMTPPort: config.Cfg.SMTPPort,
-			}).Send(util.EmailMessage{
-				To:      req.Email,
-				Subject: "SP00LER: One Time Passcode",
-				Body:    fmt.Sprintf("Your one time passcode is %s", code),
-			})
-			if err != nil {
-				log.Printf("error sending OTP to %s: %v", req.Email, err)
-			}
-		}()
+		err = (&util.EmailSender{
+			From:     config.Cfg.SMTPEmail,
+			Password: config.Cfg.SMTPPassword,
+			SMTPHost: config.Cfg.SMTPHost,
+			SMTPPort: config.Cfg.SMTPPort,
+		}).Send(util.EmailMessage{
+			To:      req.Email,
+			Subject: "SP00LER: One Time Passcode",
+			Body:    fmt.Sprintf("Your one time passcode is %s", code),
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to send OTP"})
+			return
+		}
 
 		c.JSON(http.StatusOK, gin.H{"message": "OTP sent to email"})
 	}
@@ -92,15 +90,19 @@ func VerifyOTPHandler(otpSvc *services.OTPService, userSvc *services.UserService
 		}
 
 		var secure = gin.Mode() == gin.ReleaseMode
-		http.SetCookie(c.Writer, &http.Cookie{
+		cookie := &http.Cookie{
 			Name:     "token",
 			Value:    token,
 			MaxAge:   3600 * 24 * 7,
-			Secure:   secure,
-			SameSite: http.SameSiteNoneMode,
 			Path:     "/",
 			HttpOnly: true,
-		})
+			Secure:   secure,
+		}
+
+		if secure {
+			cookie.SameSite = http.SameSiteNoneMode
+		}
+		http.SetCookie(c.Writer, cookie)
 
 		c.JSON(http.StatusOK, gin.H{"message": "login successful", "token": token})
 	}
