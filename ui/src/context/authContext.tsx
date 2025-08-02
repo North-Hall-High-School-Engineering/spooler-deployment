@@ -20,8 +20,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             const data = await checkAuth();
             if (data && typeof data === "object") {
                 setIsAuthenticated(true);
-                setRole
-                setRole(data.role)
+                setRole(data.user.role)
             } else {
                 setIsAuthenticated(false);
             }

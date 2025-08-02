@@ -7,7 +7,7 @@ export async function getPrints() {
     return res.data;
 }
 
-export async function createPrint(file: File, requestedFilamentColor: string) {
+export async function createPrint(file: File, requestedFilamentColor: string, onProgress?: (progress: number) => void) {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("file_name", file.name);
@@ -16,7 +16,16 @@ export async function createPrint(file: File, requestedFilamentColor: string) {
     const res = await axios.post(`${API_BASE_URL}/prints/new`, formData, {
         withCredentials: true,
         headers: { "Content-Type": "multipart/form-data" },
+        timeout: 60_000, // 1 minute timeout
+        onUploadProgress: (progressEvent) => {
+            if (progressEvent.total && onProgress) {
+                const progress = (progressEvent.loaded / progressEvent.total) * 100;
+                onProgress(Math.min(progress, 99));
+            }
+        },
     });
+
+    if (onProgress) onProgress(100);
     return res.data;
 }
 
@@ -53,3 +62,15 @@ export async function deletePrint(id: number) {
     const res = await axios.delete(`${API_BASE_URL}/prints/${id}`, { withCredentials: true });
     return res.data;
 }
+
+export const getPrintPreview = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await axios.post(`${API_BASE_URL}/preview`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true,
+    });
+
+    return response.data;
+};

@@ -124,7 +124,7 @@ List all print jobs submitted by the authenticated user.
 
 ### Get File Metadata
 
-**POST** `/metadata`
+**POST** `/preview`
 
 Get STL preview or 3MF thumbnail.
 
@@ -132,7 +132,7 @@ Get STL preview or 3MF thumbnail.
 - `file`: STL or 3MF file (required)
 
 **Responses:**
-- `200 OK` — Metadata (base64 preview or thumbnail)
+- `200 OK` — Metadata (FilePreview struct)
 - `400 Bad Request` — No file
 
 ---

@@ -59,3 +59,10 @@ export async function removeWhitelist(email: string) {
     if (!res.ok) throw new Error("Failed to remove email");
     return res.json();
 }
+
+export async function getUserById(id: number) {
+    const res = await axios.get(`${API_BASE_URL}/users/${id}`, {
+        withCredentials: true,
+    });
+    return res.data;
+}

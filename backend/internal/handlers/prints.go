@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -45,6 +47,12 @@ func NewPrintHandler(bucketSvc *services.BucketService, printSvc *services.Print
 			return
 		}
 
+		const maxFileSize = 100 * 1024 * 1024
+		if file.Size > maxFileSize {
+			c.JSON(400, gin.H{"error": "file too large"})
+			return
+		}
+
 		fileHandle, err := file.Open()
 		if err != nil {
 			c.JSON(500, gin.H{"error": "failed to open file"})
@@ -55,10 +63,15 @@ func NewPrintHandler(bucketSvc *services.BucketService, printSvc *services.Print
 		ext := filepath.Ext(file.Filename)
 		storedFileName := fmt.Sprintf("%s%s", uuid.New().String(), ext)
 
-		if err := bucketSvc.UploadFile(c, storedFileName, fileHandle); err != nil {
-			c.JSON(500, gin.H{"error": "failed to upload file to bucket"})
-			return
-		}
+		go func() {
+			_ = bucketSvc.UploadFile(context.Background(), storedFileName, fileHandle)
+		}()
+
+		// if err := bucketSvc.UploadFile(c, storedFileName, fileHandle); err != nil {
+		// 	c.JSON(500, gin.H{"error": "failed to upload file to bucket"})
+		// 	return
+		// }
+		// ????? can i use goroutine? we will see
 
 		print := models.Print{
 			UserID:                 claims.UserID,
@@ -81,7 +94,22 @@ func NewPrintHandler(bucketSvc *services.BucketService, printSvc *services.Print
 	}
 }
 
-func MetadataHandler() gin.HandlerFunc {
+type FilePreviewType string
+
+const (
+	FileTypeSTL      FilePreviewType = "stl"
+	FileType3MF      FilePreviewType = "3mf"
+	FileTypeGCode3MF FilePreviewType = "gcode.3mf"
+)
+
+type FilePreview struct {
+	Type FilePreviewType `json:"type"` // enum-like: "stl", "3mf", "gcode.3mf"
+
+	ModelData    *string `json:"model_data,omitempty"`    // base64, present for stl/3mf
+	PreviewImage *string `json:"preview_image,omitempty"` // base64 PNG for gcode.3mf
+}
+
+func PreviewHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		file, err := c.FormFile("file")
 		if err != nil {
@@ -96,15 +124,36 @@ func MetadataHandler() gin.HandlerFunc {
 		}
 		defer fileHandle.Close()
 
-		metadata, err := util.GetFileMetadata(file.Filename, fileHandle)
-		if err != nil {
-			c.JSON(500, gin.H{"error": "failed to get file metadata"})
-			return
+		var fileExtensions []string
+		var fileName = file.Filename
+		for {
+			ext := filepath.Ext(fileName)
+			if ext == "" {
+				break
+			}
+			fileExtensions = append(fileExtensions, ext)
+			fileName = strings.TrimSuffix(fileName, ext)
 		}
 
-		c.JSON(200, gin.H{
-			"metadata": metadata,
-		})
+		fileExtension := strings.Join(fileExtensions, "")
+		switch fileExtension {
+		// Binary filetypes
+		case ".stl", ".3mf":
+			content, err := io.ReadAll(fileHandle)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to read provided file"})
+				return
+			}
+			encoded := base64.StdEncoding.EncodeToString(content)
+
+			var previewType FilePreviewType = FileTypeSTL
+			if fileExtension == ".3mf" {
+				previewType = FileType3MF
+			}
+
+			c.JSON(http.StatusOK, FilePreview{Type: previewType, ModelData: &encoded})
+			return
+		}
 	}
 }
 

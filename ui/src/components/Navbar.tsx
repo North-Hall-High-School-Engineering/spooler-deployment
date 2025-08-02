@@ -7,7 +7,7 @@ export const Navbar = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, role, loading } = useAuth();
 
     const isActiveRoute = (path: string) => location.pathname === path;
 
@@ -15,17 +15,36 @@ export const Navbar = () => {
         <nav className="w-full h-20 bg-white">
             <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto py-6 px-4">
                 <a href="/" className="flex items-center space-x-3">
-                    <img src={logo} className="h-8" alt="Spooler Logo" />
+                    <img src={logo} className="h-8 w-32" alt="Spooler Logo" />
                 </a>
 
-                <div className="hidden md:flex space-x-8 font-medium">
-                    <a href="/dashboard" className={isActiveRoute('/dashboard') ? 'text-spooler-orange' : 'text-black'}>Dashboard</a>
-                    <a href="/admin" className={isActiveRoute('/admin') ? 'text-spooler-orange' : 'text-black'}>Administrator</a>
-                    <a href="#" className="text-black">Contact</a>
+                <div className="hidden md:flex space-x-8 font-medium min-w-0">
+                    {loading ? (
+                        <div className="flex space-x-8">
+                            <div className="bg-gray-200 animate-pulse rounded h-5 w-20"></div>
+                            <div className="bg-gray-200 animate-pulse rounded h-5 w-24"></div>
+                        </div>
+                    ) : (
+                        <>
+                            {isAuthenticated && (
+                                <>
+                                    <a href="/dashboard" className={isActiveRoute('/dashboard') ? 'text-spooler-orange' : 'text-black'}>Dashboard</a>
+                                    {role === 'admin' && (
+                                        <a href="/admin" className={isActiveRoute('/admin') ? 'text-spooler-orange' : 'text-black'}>Administrator</a>
+                                    )}
+                                </>
+                            )}
+                            <a href="#" className="text-black">Contact</a>
+                        </>
+                    )}
                 </div>
 
                 <div className="flex items-center space-x-4">
-                    {isAuthenticated? (
+                    {loading ? (
+                        <div className="bg-gray-200 animate-pulse py-2 px-6 rounded-sm">
+                            <span className="invisible">New Print</span>
+                        </div>
+                    ) : isAuthenticated ? (
                         <>
                             <button
                                 onClick={() => navigate('/new')}
@@ -36,7 +55,6 @@ export const Navbar = () => {
                                 </svg>
                                 <span>New Print</span>
                             </button>
-                            {/* <img src="https://public-cdn.bblmw.com/default/avatar.png" className="rounded-full h-12 w-12 object-cover" alt="Profile" /> */}
                         </>
                     ) : (
                         <button
@@ -59,8 +77,14 @@ export const Navbar = () => {
 
                 <div className={`w-full md:hidden ${isMobileMenuOpen ? 'block' : 'hidden'} bg-gray-50 mt-4`}>
                     <ul className="flex flex-col space-y-4 p-4">
-                        <li><a href="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className={isActiveRoute('/dashboard') ? 'text-spooler-orange' : 'text-black'}>Dashboard</a></li>
-                        <li><a href="/admin" onClick={() => setIsMobileMenuOpen(false)} className={isActiveRoute('/admin') ? 'text-spooler-orange' : 'text-black'}>Administrator</a></li>
+                        {!loading && isAuthenticated && (
+                            <>
+                                <li><a href="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className={isActiveRoute('/dashboard') ? 'text-spooler-orange' : 'text-black'}>Dashboard</a></li>
+                                {role === 'admin' && (
+                                    <li><a href="/admin" onClick={() => setIsMobileMenuOpen(false)} className={isActiveRoute('/admin') ? 'text-spooler-orange' : 'text-black'}>Administrator</a></li>
+                                )}
+                            </>
+                        )}
                         <li><a href="#" onClick={() => setIsMobileMenuOpen(false)} className="text-black">Contact</a></li>
                     </ul>
                 </div>
