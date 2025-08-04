@@ -15,7 +15,7 @@ type EmailSender struct {
 	From     string
 	Password string
 	SMTPHost string
-	SMTPPort string
+	SMTPPort int
 }
 
 type EmailMessage struct {
@@ -33,7 +33,7 @@ func (s *EmailSender) Send(msg EmailMessage) error {
 	))
 
 	err := smtp.SendMail(
-		s.SMTPHost+":"+s.SMTPPort,
+		fmt.Sprintf("%s:%d", s.SMTPHost, s.SMTPPort),
 		auth,
 		s.From,
 		[]string{msg.To},

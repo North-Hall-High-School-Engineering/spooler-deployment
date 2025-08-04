@@ -8,3 +8,5 @@ Dockerfile
 node_modules
 ui/
 docs/
+config.yml
+config.example.yml

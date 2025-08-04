@@ -1,0 +1,38 @@
+port: 8080
+secret_key: "your-secret-key"
+mode: "release"
+email_whitelist_enabled: false
+
+cors_allow_origins:
+  - "http://localhost:5173"
+  - "https://spooler.example.com"
+
+features:
+  email_whitelist_enabled: false
+
+supabase:
+  host: "db.xxxxx.supabase.co"
+  port: 5432
+  user: "postgres"
+  password: "your-db-password"
+  database: "postgres"
+
+smtp:
+  host: "smtp.gmail.com"
+  port: 587
+  email: "your-email@gmail.com"
+  password: "your-smtp-password"
+
+admin:
+  email: "admin@example.com"
+  first_name: "Admin"
+  last_name: "User"
+
+storage:
+  provider: "google_cloud"  # options: "google_cloud" or "local"
+
+  google_cloud:
+    bucket_name: "your-gcs-bucket-name"
+
+  local:
+    base_path: "./uploads"

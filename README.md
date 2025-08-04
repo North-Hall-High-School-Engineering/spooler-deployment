@@ -201,14 +201,13 @@ A full-stack web application for managing 3D print jobs, featuring user authenti
 ## Print Submission Flow
 
 1. **User uploads STL/3MF file**  
-   - `.stl`: Generates a 3D preview (base64-encoded).
-   - `.3mf`: Extracts thumbnail image from archive.
+   - `.stl`, `.3mf`: Generates a 3D preview (base64-encoded).
 
-2. **User selects filament color**  
+2. **User selects filament color (if .stl file)**  
    - Color is stored with the print job.
 
 3. **Submission**  
-   - File is uploaded to Google Cloud Storage.
+   - File is uploaded to storage provider.
    - Print job is created in the database.
 
 ---
@@ -223,14 +222,14 @@ A full-stack web application for managing 3D print jobs, featuring user authenti
 
 ---
 
-## Email Whitelist Feature
+<!-- ## Email Whitelist Feature
 
 - **Purpose:** Restrict registration and OTP requests to a set of approved emails.
 - **Enable:** Set `EMAIL_WHITELIST_ENABLED="true"` in your backend `.env`.
 - **Management:** Admins can add, remove, and list whitelisted emails via API or admin UI.
 - **Enforcement:** Whitelist is enforced via middleware for registration and OTP endpoints.
 
----
+--- -->
 
 ## Development & Contribution
 
@@ -251,26 +250,9 @@ npm run build
 - **Backend:** Go packages are organized by domain (handlers, services, models, util).
 - **Frontend:** React components are colocated by feature. Types and API utilities are in `src/types` and `src/util`.
 
-### Adding Features
-
-- Add new API endpoints in backend `handlers/` and `services/`.
-- Add new React components in `ui/src/components/`.
-- Update types in `ui/src/types/`.
-
----
-
 ## License
 
 MIT. See [LICENSE](LICENSE) for more information.
-
----
-
-## Additional Documentation
-
-- [docs/API.md](docs/API.md) — Detailed API endpoint documentation
-- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) — Deployment instructions
-- [docs/SECURITY.md](docs/SECURITY.md) — Security considerations
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — In-depth architecture overview
 
 ---
 

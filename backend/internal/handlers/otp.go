@@ -23,7 +23,7 @@ func RequestOTPHandler(otpSvc *services.OTPService, whitelistSvc *services.White
 			return
 		}
 
-		if config.Cfg.EmailWhitelistEnabled {
+		if config.Cfg.Features.EmailWhitelistEnabled {
 			allowed, err := whitelistSvc.IsWhitelisted(req.Email)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "whitelist check failed"})
@@ -42,10 +42,10 @@ func RequestOTPHandler(otpSvc *services.OTPService, whitelistSvc *services.White
 		}
 
 		err = (&util.EmailSender{
-			From:     config.Cfg.SMTPEmail,
-			Password: config.Cfg.SMTPPassword,
-			SMTPHost: config.Cfg.SMTPHost,
-			SMTPPort: config.Cfg.SMTPPort,
+			From:     config.Cfg.SMTP.Email,
+			Password: config.Cfg.SMTP.Password,
+			SMTPHost: config.Cfg.SMTP.Host,
+			SMTPPort: config.Cfg.SMTP.Port,
 		}).Send(util.EmailMessage{
 			To:      req.Email,
 			Subject: "SP00LER: One Time Passcode",

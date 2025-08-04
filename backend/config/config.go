@@ -1,74 +1,75 @@
 package config
 
 import (
-	"fmt"
-	"os"
+	"strings"
 
-	"github.com/joho/godotenv"
+	"github.com/spf13/viper"
+	"github.com/torbenconto/spooler/internal/types"
 )
 
 var Cfg *Config
 
 type Config struct {
-	Port         string
-	SMTPEmail    string
-	SMTPPassword string
-	SMTPHost     string
-	SMTPPort     string
+	Port             int      `mapstructure:"port"`
+	SecretKey        string   `mapstructure:"secret_key"`
+	Mode             string   `mapstructure:"mode"`
+	CORSAllowOrigins []string `mapstructure:"cors_allow_origins"`
 
-	SupabaseHost     string
-	SupabasePort     string
-	SupabaseUser     string
-	SupabasePassword string
-	SupabaseDB       string
+	Features struct {
+		EmailWhitelistEnabled bool `mapstructure:"email_whitelist_enabled"`
+	} `mapstructure:"features"`
 
-	SecretKey string
+	Supabase struct {
+		Host     string `mapstructure:"host"`
+		Port     int    `mapstructure:"port"`
+		User     string `mapstructure:"user"`
+		Password string `mapstructure:"password"`
+		Database string `mapstructure:"database"`
+	} `mapstructure:"supabase"`
 
-	GcloudPrintFilesBucket string
+	SMTP struct {
+		Host     string `mapstructure:"host"`
+		Port     int    `mapstructure:"port"`
+		Email    string `mapstructure:"email"`
+		Password string `mapstructure:"password"`
+	} `mapstructure:"smtp"`
 
-	EmailWhitelistEnabled bool
+	Admin struct {
+		Email     string `mapstructure:"email"`
+		FirstName string `mapstructure:"first_name"`
+		LastName  string `mapstructure:"last_name"`
+	} `mapstructure:"admin"`
 
-	AdminEmail     string
-	AdminFirstName string
-	AdminLastName  string
+	Storage struct {
+		Provider types.StorageProvider `mapstructure:"provider"`
+
+		GoogleCloud struct {
+			BucketName string `mapstructure:"bucket_name"`
+		} `mapstructure:"google_cloud"`
+
+		Local struct {
+			BasePath string `mapstructure:"base_path"`
+		} `mapstructure:"local"`
+	} `mapstructure:"storage"`
 }
 
-func LoadConfig() error {
-	_ = godotenv.Load()
+func LoadConfig(path string) (*Config, error) {
+	viper.SetConfigName("config")
+	viper.SetConfigType("yml")
+	viper.AddConfigPath(path)
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
-	requiredKeys := []string{
-		"PORT", "SMTP_EMAIL", "SMTP_PASSWORD", "SMTP_HOST", "SMTP_PORT",
-		"SUPABASE_HOST", "SUPABASE_PORT", "SUPABASE_USER", "SUPABASE_PASSWORD", "SUPABASE_DB", "SECRET_KEY",
-		"GCLOUD_PRINT_FILES_BUCKET", "EMAIL_WHITELIST_ENABLED",
-		"ADMIN_EMAIL", "ADMIN_FIRST_NAME", "ADMIN_LAST_NAME",
+	var cfg Config
+
+	if err := viper.ReadInConfig(); err != nil {
+		return nil, err
 	}
 
-	for _, key := range requiredKeys {
-		if os.Getenv(key) == "" {
-			return fmt.Errorf("missing key %s in environment variables", key)
-		}
+	if err := viper.Unmarshal(&cfg); err != nil {
+		return nil, err
 	}
 
-	Cfg = &Config{
-		Port:             os.Getenv("PORT"),
-		SMTPEmail:        os.Getenv("SMTP_EMAIL"),
-		SMTPPassword:     os.Getenv("SMTP_PASSWORD"),
-		SMTPHost:         os.Getenv("SMTP_HOST"),
-		SMTPPort:         os.Getenv("SMTP_PORT"),
-		SupabaseHost:     os.Getenv("SUPABASE_HOST"),
-		SupabasePort:     os.Getenv("SUPABASE_PORT"),
-		SupabaseUser:     os.Getenv("SUPABASE_USER"),
-		SupabasePassword: os.Getenv("SUPABASE_PASSWORD"),
-		SupabaseDB:       os.Getenv("SUPABASE_DB"),
-
-		SecretKey:              os.Getenv("SECRET_KEY"),
-		GcloudPrintFilesBucket: os.Getenv("GCLOUD_PRINT_FILES_BUCKET"),
-		EmailWhitelistEnabled:  os.Getenv("EMAIL_WHITELIST_ENABLED") == "true",
-
-		AdminEmail:     os.Getenv("ADMIN_EMAIL"),
-		AdminFirstName: os.Getenv("ADMIN_FIRST_NAME"),
-		AdminLastName:  os.Getenv("ADMIN_LAST_NAME"),
-	}
-
-	return nil
+	Cfg = &cfg
+	return &cfg, nil
 }
