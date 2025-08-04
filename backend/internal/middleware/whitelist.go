@@ -9,7 +9,7 @@ import (
 
 func WhitelistEnabledMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if !config.Cfg.EmailWhitelistEnabled {
+		if !config.Cfg.Features.EmailWhitelistEnabled {
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "whitelist not enabled"})
 			return
 		}

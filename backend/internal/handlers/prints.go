@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"path/filepath"
 	"strconv"
@@ -14,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/torbenconto/spooler/internal/models"
 	"github.com/torbenconto/spooler/internal/services"
+	"github.com/torbenconto/spooler/internal/storage"
 	"github.com/torbenconto/spooler/internal/util"
 )
 
@@ -21,7 +23,7 @@ type NewPrintRequest struct {
 	FilamentColor string `form:"requested_filament_color" binding:"required"`
 }
 
-func NewPrintHandler(bucketSvc *services.BucketService, printSvc *services.PrintService) gin.HandlerFunc {
+func NewPrintHandler(storageClient storage.StorageClient, printSvc *services.PrintService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user, exists := c.Get("user")
 		if !exists {
@@ -68,8 +70,9 @@ func NewPrintHandler(bucketSvc *services.BucketService, printSvc *services.Print
 			_ = pw.CloseWithError(err)
 		}()
 
-		if err := bucketSvc.UploadFile(c.Request.Context(), storedFileName, pr); err != nil {
+		if err := storageClient.StoreFile(c.Request.Context(), storedFileName, pr); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to upload file"})
+			return
 		}
 
 		// if err := bucketSvc.UploadFile(c, storedFileName, fileHandle); err != nil {
@@ -108,7 +111,7 @@ const (
 )
 
 type FilePreview struct {
-	Type FilePreviewType `json:"type"` // enum-like: "stl", "3mf", "gcode.3mf"
+	Type FilePreviewType `json:"type"` //"stl", "3mf", "gcode.3mf"
 
 	ModelData    *string `json:"model_data,omitempty"`    // base64, present for stl/3mf
 	PreviewImage *string `json:"preview_image,omitempty"` // base64 PNG for gcode.3mf
@@ -142,7 +145,6 @@ func PreviewHandler() gin.HandlerFunc {
 
 		fileExtension := strings.Join(fileExtensions, "")
 		switch fileExtension {
-		// Binary filetypes
 		case ".stl", ".3mf":
 			content, err := io.ReadAll(fileHandle)
 			if err != nil {
@@ -158,6 +160,7 @@ func PreviewHandler() gin.HandlerFunc {
 
 			c.JSON(http.StatusOK, FilePreview{Type: previewType, ModelData: &encoded})
 			return
+			// case ".gcode.3mf":
 		}
 	}
 }
@@ -199,7 +202,7 @@ func AllPrintsHandler(printSvc *services.PrintService) gin.HandlerFunc {
 	}
 }
 
-func DeletePrintHandler(printSvc *services.PrintService, bucketSvc *services.BucketService) gin.HandlerFunc {
+func DeletePrintHandler(printSvc *services.PrintService, storageClient storage.StorageClient) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idParam := c.Param("id")
 		printID, err := strconv.ParseUint(idParam, 10, 64)
@@ -214,9 +217,8 @@ func DeletePrintHandler(printSvc *services.PrintService, bucketSvc *services.Buc
 			return
 		}
 
-		if err := bucketSvc.DeleteFile(context.Background(), printItem.StoredFileName); err != nil {
-			c.JSON(500, gin.H{"error": "failed to delete file from bucket"})
-			return
+		if err := storageClient.DeleteFile(context.Background(), printItem.StoredFileName); err != nil {
+			log.Printf("failed to delete file: %s", printItem.StoredFileName)
 		}
 
 		if err := printSvc.DeletePrint(uint(printID)); err != nil {
@@ -228,10 +230,10 @@ func DeletePrintHandler(printSvc *services.PrintService, bucketSvc *services.Buc
 	}
 }
 
-func DownloadPrintFileHandler(bucketSvc *services.BucketService) gin.HandlerFunc {
+func DownloadPrintFileHandler(storageClient storage.StorageClient) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		filename := c.Param("filename")
-		reader, err := bucketSvc.GetFile(c, filename)
+		reader, err := storageClient.GetFile(c, filename)
 		if err != nil {
 			c.JSON(404, gin.H{"error": "file not found"})
 			return

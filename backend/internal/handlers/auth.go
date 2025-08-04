@@ -25,13 +25,12 @@ func RegisterHandler(userSvc *services.UserService, whitelistSvc *services.White
 			return
 		}
 
-		// Validate email
 		if !util.ValidateEmail(req.Email) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid email format"})
 			return
 		}
 
-		if config.Cfg.EmailWhitelistEnabled {
+		if config.Cfg.Features.EmailWhitelistEnabled {
 			allowed, err := whitelistSvc.IsWhitelisted(req.Email)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "whitelist check failed"})

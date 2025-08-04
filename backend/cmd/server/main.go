@@ -1,19 +1,3 @@
-// @title Spooler API
-// @version 1.0
-// @description API for 3D print job management and authentication
-// @contact.name North Hall TSA
-// @contact.email northhalltsa@gmail.com
-// @host localhost:8080
-// @BasePath /
-// @schemes http
-
-// @securityDefinitions.apikey Authenticated
-// @in cookie
-// @name token
-
-// @securityDefinitions.apikey RoleAdmin
-// @in cookie
-// @name token
 package main
 
 import (
@@ -27,14 +11,14 @@ import (
 )
 
 func main() {
-	err := config.LoadConfig()
+	_, err := config.LoadConfig(".")
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
 	}
 
 	uri := fmt.Sprintf(
-		"postgres://%s:%s@%s:%s/%s?sslmode=require",
-		config.Cfg.SupabaseUser, config.Cfg.SupabasePassword, config.Cfg.SupabaseHost, config.Cfg.SupabasePort, config.Cfg.SupabaseDB,
+		"postgres://%s:%s@%s:%d/%s?sslmode=require",
+		config.Cfg.Supabase.User, config.Cfg.Supabase.Password, config.Cfg.Supabase.Host, config.Cfg.Supabase.Port, config.Cfg.Supabase.Database,
 	)
 
 	db, err := gorm.Open(postgres.Open(uri), &gorm.Config{})
@@ -45,12 +29,12 @@ func main() {
 	db.AutoMigrate(models.OTP{}, models.User{}, models.Print{}, models.EmailWhitelist{})
 
 	var admin models.User
-	result := db.Where("email = ?", config.Cfg.AdminEmail).First(&admin)
+	result := db.Where("email = ?", config.Cfg.Admin.Email).First(&admin)
 	if result.Error != nil {
 		admin = models.User{
-			Email:     config.Cfg.AdminEmail,
-			FirstName: config.Cfg.AdminFirstName,
-			LastName:  config.Cfg.AdminLastName,
+			Email:     config.Cfg.Admin.Email,
+			FirstName: config.Cfg.Admin.FirstName,
+			LastName:  config.Cfg.Admin.LastName,
 			Role:      string(models.RoleAdmin),
 			Active:    true,
 		}
@@ -60,11 +44,11 @@ func main() {
 	}
 
 	// Add admin to whitelist if enabled
-	if config.Cfg.EmailWhitelistEnabled {
+	if config.Cfg.Features.EmailWhitelistEnabled {
 		var count int64
-		db.Model(&models.EmailWhitelist{}).Where("email = ?", config.Cfg.AdminEmail).Count(&count)
+		db.Model(&models.EmailWhitelist{}).Where("email = ?", config.Cfg.Admin.Email).Count(&count)
 		if count == 0 {
-			if err := db.Create(&models.EmailWhitelist{Email: config.Cfg.AdminEmail}).Error; err != nil {
+			if err := db.Create(&models.EmailWhitelist{Email: config.Cfg.Admin.Email}).Error; err != nil {
 				log.Fatalf("failed to add admin to whitelist: %v", err)
 			}
 		}
@@ -75,7 +59,7 @@ func main() {
 		log.Fatalf("error setting up routes: %v", err)
 	}
 
-	if err := r.Run(fmt.Sprintf(":%s", config.Cfg.Port)); err != nil {
+	if err := r.Run(fmt.Sprintf(":%d", config.Cfg.Port)); err != nil {
 		log.Fatalf("failed to start server %v", err)
 	}
 }
