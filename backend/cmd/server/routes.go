@@ -2,37 +2,34 @@ package main
 
 import (
 	"context"
-	"os"
 	"strings"
 	"time"
 
-	"cloud.google.com/go/storage"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/torbenconto/spooler/config"
 	"github.com/torbenconto/spooler/internal/handlers"
 	"github.com/torbenconto/spooler/internal/middleware"
 	"github.com/torbenconto/spooler/internal/models"
 	"github.com/torbenconto/spooler/internal/services"
+	"github.com/torbenconto/spooler/internal/storage"
 	"gorm.io/gorm"
 )
-
-func getAllowedOrigins() []string {
-	origins := os.Getenv("CORS_ALLOW_ORIGINS")
-	if origins == "" {
-		return []string{"http://localhost:5173"}
-	}
-	parts := strings.Split(origins, ",")
-	for i := range parts {
-		parts[i] = strings.TrimSpace(parts[i])
-	}
-	return parts
-}
 
 func SetupRoutes(db *gorm.DB) (*gin.Engine, error) {
 	r := gin.Default()
 
+	var allowedOrigins []string
+	if len(config.Cfg.CORSAllowOrigins) == 0 {
+		allowedOrigins = []string{"http://localhost:5173"}
+	}
+
+	for _, origin := range config.Cfg.CORSAllowOrigins {
+		allowedOrigins = append(allowedOrigins, strings.TrimSpace(origin))
+	}
+
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     getAllowedOrigins(),
+		AllowOrigins:     allowedOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		AllowCredentials: true,
@@ -40,14 +37,13 @@ func SetupRoutes(db *gorm.DB) (*gin.Engine, error) {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	storageClient, err := storage.NewClient(context.Background())
+	storageClient, err := storage.NewStorageClient(context.Background(), config.Cfg)
 	if err != nil {
 		return nil, err
 	}
 
 	userSvc := services.NewUserService(db)
 	otpSvc := services.NewOTPService(db)
-	bucketSvc := services.NewBucketService(db, storageClient)
 	printSvc := services.NewPrintService(db)
 	whitelistSvc := services.NewWhitelistService(db)
 
@@ -65,9 +61,9 @@ func SetupRoutes(db *gorm.DB) (*gin.Engine, error) {
 	{
 		auth.GET("/me", handlers.MeHandler())
 		auth.GET("/me/prints", handlers.GetUserPrintsHandler(printSvc))
-		auth.GET("/bucket/:filename", handlers.DownloadPrintFileHandler(bucketSvc))
+		auth.GET("/bucket/:filename", handlers.DownloadPrintFileHandler(storageClient))
 		auth.POST("/preview", handlers.PreviewHandler())
-		auth.POST("/prints/new", handlers.NewPrintHandler(bucketSvc, printSvc))
+		auth.POST("/prints/new", handlers.NewPrintHandler(storageClient, printSvc))
 	}
 
 	// Admin-only routes
@@ -78,7 +74,7 @@ func SetupRoutes(db *gorm.DB) (*gin.Engine, error) {
 		{
 			prints.GET("/all", handlers.AllPrintsHandler(printSvc))
 
-			prints.DELETE("/:id", handlers.DeletePrintHandler(printSvc, bucketSvc))
+			prints.DELETE("/:id", handlers.DeletePrintHandler(printSvc, storageClient))
 			prints.PUT("/:id", handlers.UpdatePrintHandler(printSvc))
 		}
 

@@ -30,7 +30,7 @@ func RegisterHandler(userSvc *services.UserService, whitelistSvc *services.White
 			return
 		}
 
-		if config.Cfg.EmailWhitelistEnabled {
+		if config.Cfg.Features.EmailWhitelistEnabled {
 			allowed, err := whitelistSvc.IsWhitelisted(req.Email)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "whitelist check failed"})
