@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
@@ -10,10 +11,33 @@ import (
 	"gorm.io/gorm"
 )
 
+func validateSupabaseConfig(cfg *config.Config) error {
+	if cfg.Supabase.User == "" {
+		return errors.New("supabase user is empty")
+	}
+	if cfg.Supabase.Password == "" {
+		return errors.New("supabase password is empty")
+	}
+	if cfg.Supabase.Host == "" {
+		return errors.New("supabase host is empty")
+	}
+	if cfg.Supabase.Port <= 0 || cfg.Supabase.Port > 65535 {
+		return fmt.Errorf("supabase port is invalid: %d", cfg.Supabase.Port)
+	}
+	if cfg.Supabase.Database == "" {
+		return errors.New("supabase database name is empty")
+	}
+	return nil
+}
+
 func main() {
 	_, err := config.LoadConfig(".")
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
+	}
+
+	if err := validateSupabaseConfig(config.Cfg); err != nil {
+		log.Fatalf("invalid supabase config: %v", err)
 	}
 
 	uri := fmt.Sprintf(
